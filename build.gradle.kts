@@ -40,14 +40,17 @@ kotlin {
 
         val commonMain by getting {
                 dependencies {
+                    api(KotlinX.coroutines.core)
+                    api(KotlinX.datetime)
                 }
             }
 
         val commonTest by getting {
                 dependencies {
-                    implementation(kotlin("test-common"))
-                    implementation(kotlin("test-annotations-common"))
-                    implementation("io.kotest:kotest-assertions-core:_")
+                    implementation(kotlin("test-common", "_"))
+                    implementation(kotlin("test-annotations-common", "_"))
+                    implementation(Testing.kotest.assertions.core)
+                    implementation(KotlinX.coroutines.test)
                 }
             }
 
