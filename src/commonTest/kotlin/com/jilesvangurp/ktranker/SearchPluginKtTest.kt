@@ -22,7 +22,7 @@ class SearchPluginKtTest {
             ),
             RatedSearch(
                 id = "2",
-                searchContext = mapOf("query" to "test"),
+                searchContext = mapOf("query" to "icle"),
                 ratings = mapOf("1" to 2, "2" to 1)
             )
         )
