@@ -14,5 +14,6 @@ import kotlinx.serialization.Serializable
 data class RatedSearch(
     val id: String,
     val searchContext: Map<String, String>,
-    val ratings: List<SearchResultRating>
+    val ratings: List<SearchResultRating>,
+    val comment: String?=null,
 )
