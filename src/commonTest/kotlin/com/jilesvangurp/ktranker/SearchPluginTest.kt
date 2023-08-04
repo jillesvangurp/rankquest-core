@@ -6,7 +6,7 @@ import kotlin.test.Test
 import kotlin.time.Duration
 
 
-class SearchPluginKtTest {
+class SearchPluginTest {
     @Test
     fun shouldCalculateMeanReciprocal() = coRun {
         val mockPlugin = object : SearchPlugin {
@@ -18,12 +18,18 @@ class SearchPluginKtTest {
             RatedSearch(
                 id = "1",
                 searchContext = mapOf("query" to "test"),
-                ratings = mapOf("1" to 1, "2" to 2)
+                ratings = listOf(
+                    SearchResultRating("1", 1),
+                    SearchResultRating("2", 2)
+                )
             ),
             RatedSearch(
                 id = "2",
                 searchContext = mapOf("query" to "icle"),
-                ratings = mapOf("1" to 2, "2" to 1)
+                ratings = listOf(
+                    SearchResultRating("1", 2),
+                    SearchResultRating("2", 1)
+                )
             )
         )
 
@@ -63,12 +69,19 @@ class SearchPluginKtTest {
             RatedSearch(
                 id = "1",
                 searchContext = mapOf("query" to "test"),
-                ratings = mapOf("1" to 1, "2" to 0)
+                ratings =listOf(
+                    SearchResultRating("1", 1),
+                    SearchResultRating("2", 0)
+                )
+
             ),
             RatedSearch(
                 id = "2",
                 searchContext = mapOf("query" to "test"),
-                ratings = mapOf("1" to 0, "2" to 1)
+                ratings = listOf(
+                    SearchResultRating("1", 0),
+                    SearchResultRating("2", 1)
+                )
             )
         )
 
@@ -108,12 +121,18 @@ class SearchPluginKtTest {
             RatedSearch(
                 id = "1",
                 searchContext = mapOf("query" to "test"),
-                ratings = mapOf("1" to 1, "2" to 0)
+                ratings = listOf(
+                    SearchResultRating("1", 1),
+                    SearchResultRating("2", 0)
+                )
             ),
             RatedSearch(
                 id = "2",
                 searchContext = mapOf("query" to "test"),
-                ratings = mapOf("1" to 0, "2" to 1)
+                ratings = listOf(
+                    SearchResultRating("1", 0),
+                    SearchResultRating("2", 1)
+                )
             )
         )
 

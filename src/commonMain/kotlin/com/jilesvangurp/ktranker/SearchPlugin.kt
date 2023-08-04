@@ -24,20 +24,16 @@ interface SearchPlugin {
     suspend fun fetch(searchContext: Map<String, String>, numberOfItemsToFetch: Int): Results
 }
 
-data class RatedSearch(
-    val id: String,
-    val searchContext: Map<String, String>,
-    val ratings: Map<String, Int>
-)
-
-data class MetricResults(
-    val metric: Double,
-    val details: List<MetricResult>
-) {
-    data class MetricResult(
-        val id: String,
-        val metric: Double,
-        val hits: List<Pair<String, Double>>,
-        val unRated: List<String>
-    )
+/**
+ * Use this to quickly convert a search to a RatedSearch. You can edit the ratings later.
+ */
+suspend fun SearchPlugin.initializeRatedSearch(searchContext: Map<String, String>, numberOfItemsToFetch: Int): RatedSearch {
+    val results = fetch(searchContext,numberOfItemsToFetch)
+    var rating=results.resultList.size
+    return RatedSearch("",searchContext,results.resultList.map {
+        SearchResultRating(it.id, rating--, it.label)
+    })
 }
+
+
+
