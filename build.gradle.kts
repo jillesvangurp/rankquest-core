@@ -8,6 +8,7 @@ plugins {
 
 repositories {
     mavenCentral()
+    maven("https://maven.tryformation.com/releases")
 }
 
 kotlin {
@@ -41,7 +42,10 @@ kotlin {
         val commonMain by getting {
                 dependencies {
                     api(KotlinX.coroutines.core)
+                    api(Ktor.client.core)
                     api(KotlinX.datetime)
+                    api(Ktor.client.serialization)
+                    api("io.ktor:ktor-serialization-kotlinx-json:_")
                 }
             }
 
@@ -51,6 +55,8 @@ kotlin {
                     implementation(kotlin("test-annotations-common", "_"))
                     implementation(Testing.kotest.assertions.core)
                     implementation(KotlinX.coroutines.test)
+
+                    implementation("com.github.jillesvangurp:ktjsearch:_")
                 }
             }
 

@@ -1,4 +1,4 @@
-rootProject.name = "geogeometry"
+rootProject.name = "ktranker"
 
 pluginManagement {
     repositories {
