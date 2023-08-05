@@ -1,4 +1,4 @@
-package com.jilesvangurp.ktranker.testutils
+package com.jilesvangurp.rankquest.core.testutils
 
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope

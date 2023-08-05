@@ -1,8 +1,8 @@
-package com.jilesvangurp.ktranker.plugins
+package com.jilesvangurp.rankquest.core.plugins
 
-import com.jilesvangurp.ktranker.DEFAULT_JSON
-import com.jilesvangurp.ktranker.SearchResults
-import com.jilesvangurp.ktranker.SearchPlugin
+import com.jilesvangurp.rankquest.core.DEFAULT_JSON
+import com.jilesvangurp.rankquest.core.SearchResults
+import com.jilesvangurp.rankquest.core.SearchPlugin
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*

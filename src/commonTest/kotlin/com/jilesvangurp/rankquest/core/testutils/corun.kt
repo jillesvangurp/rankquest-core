@@ -1,4 +1,4 @@
-package com.jilesvangurp.ktranker.testutils
+package com.jilesvangurp.rankquest.core.testutils
 
 import kotlinx.coroutines.test.TestResult
 import kotlin.time.Duration

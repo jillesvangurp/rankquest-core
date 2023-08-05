@@ -1,9 +1,9 @@
-package com.jillesvangurp.ktranker.moviesrankexample
+package com.jillesvangurp.rankquest.core.moviesrankexample
 
-import com.jilesvangurp.ktranker.RatedSearch
-import com.jilesvangurp.ktranker.SearchResultRating
-import com.jilesvangurp.ktranker.runAllMetrics
-import com.jilesvangurp.ktranker.testutils.coRun
+import com.jilesvangurp.rankquest.core.RatedSearch
+import com.jilesvangurp.rankquest.core.SearchResultRating
+import com.jilesvangurp.rankquest.core.runAllMetrics
+import com.jilesvangurp.rankquest.core.testutils.coRun
 import io.kotest.matchers.doubles.shouldBeGreaterThan
 import io.kotest.matchers.string.shouldContain
 import org.junit.Test

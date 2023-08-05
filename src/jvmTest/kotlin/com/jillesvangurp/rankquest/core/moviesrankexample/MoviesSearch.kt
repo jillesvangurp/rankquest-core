@@ -1,8 +1,8 @@
-package com.jillesvangurp.ktranker.moviesrankexample
+package com.jillesvangurp.rankquest.core.moviesrankexample
 
-import com.jilesvangurp.ktranker.DEFAULT_JSON
-import com.jilesvangurp.ktranker.SearchResults
-import com.jilesvangurp.ktranker.SearchPlugin
+import com.jilesvangurp.rankquest.core.DEFAULT_JSON
+import com.jilesvangurp.rankquest.core.SearchResults
+import com.jilesvangurp.rankquest.core.SearchPlugin
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import search.*

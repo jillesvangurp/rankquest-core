@@ -1,6 +1,6 @@
-package com.jilesvangurp.ktranker
+package com.jilesvangurp.rankquest.core
 
-import com.jilesvangurp.ktranker.testutils.coRun
+import com.jilesvangurp.rankquest.core.testutils.coRun
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 import kotlin.time.Duration

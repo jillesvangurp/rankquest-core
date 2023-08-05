@@ -1,4 +1,4 @@
-package com.jilesvangurp.ktranker
+package com.jilesvangurp.rankquest.core
 
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration

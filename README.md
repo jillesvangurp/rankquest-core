@@ -1,14 +1,13 @@
-Simple rank evalution toolset similar to the rank eval API in Elasticsearch 
-but written such that it can be used with anything that returns search results.
-
+Rankquest is a simple rank evalution toolset that can be used to benchmark any API that returns search results.
 
 ## Why?
 
-The rank eval API in Elasticsearch is too low level. People use Elasticsearch
-to implement search solutions. However what they need to test is those integrated
-solutions (e.g. a search API) and not the underlying implementation details (e.g. the bit that calls Elasticsearch with a query, or some other solution).
+The rank eval API in Elasticsearch is nice but it is too low level. Some People use Elasticsearch
+to implement search solutions. But of course there are many alternatives. Also, when testing and benchmarking search solutions, you want to do this in black box style and test APIs from the outside instead of benchmarking a specific query in Elasticsearch.
 
-Making this a multi platform library enables a few cool features, including embedding this in a kotlin-js web application where it can run entirely in the browser. One of my ambitions with this is developing a browser based application that can be used with any kind of search REST API to evaluate it's ranking. With some simple import/export tools for the queries and ratings, this could run stand alone with very little effort.
+Rankquest addresses this by being implementation neutral. It works with anything that returns some kind of ordered list of results.
+
+Making this a Kotlin multi platform library enables a few nice features, including embedding this in a kotlin-js web application where it can run entirely in the browser. One of my ambitions with this is developing a browser based application that can be used with any kind of search REST API to evaluate it's ranking. With some simple import/export tools for the queries and ratings, this could run stand alone with very little effort.
 
 ## Development status
 
@@ -19,14 +18,15 @@ Currently, it has simple implementations similar to what elasticsearch provides 
 
 ## How?
 
-This is a multi platform kotlin library. It assumes you have some sort of API that returns a list of results with ids. All you need to do to use this framework is
+This is a multi platform kotlin library. It assumes you have some sort of API that returns a list of results with ids that you can call. All you need to do to use this framework is
 
-1. Provide an implementation of fetching results and extracting ids from the results that can be parametrized with query context (parameters for your API)
+1. Provide a `SearchPlugin` implementation that fetches results and extracts ids from the results that can be parametrized with query context (parameters for your API)
 2. Provide some ratings for your list of query contexts (one for each search)
 
 That's it. The rest should just work.
 
 ## Goals
 
-- Keep this simple enough that people can get started with it quickly and help them build ranking test suites.
-- Build out tooling and UIs around this to make this even easier
+- Keep this simple and flexible enough that people can get started with it quickly. 
+- Enable building ranking test suites without a lot of infrastructure.
+- Build out tooling and UIs around this to make this as easy as possible to manage.
