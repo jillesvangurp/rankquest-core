@@ -2,6 +2,7 @@ package com.jilesvangurp.rankquest.core
 
 import kotlinx.serialization.Serializable
 import kotlin.math.log2
+import kotlin.math.pow
 
 @Serializable
 enum class Metric {
@@ -171,6 +172,46 @@ suspend fun SearchPlugin.meanReciprocalRank(
 
     val meanReciprocalRank = metricResults.sumOf { it.metric } / metricResults.size
     return MetricResults(meanReciprocalRank, metricResults)
+}
+
+suspend fun SearchPlugin.expectedMeanReciprocalRank(
+    ratedSearches: List<RatedSearch>,
+    maxRelevance: Int = 5,
+): MetricResults {
+    val searchResults = ratedSearches.map { it to fetch(it.searchContext, ratedSearches.size).getOrThrow() }
+
+    val metricResults = searchResults.map { (ratedSearch, results) ->
+        val unRated = mutableListOf<String>()
+        val hits = mutableListOf<Pair<String, Double>>()
+
+        var p = 1.0
+        var rank = 1
+
+        val err = results.searchResultList.mapIndexedNotNull { index, result ->
+            val rating = ratedSearch.ratings[result.id]
+            if (rating != null) {
+                val probabilityForRating = (2.0.pow(rating.rating) - 1.0) / 2.0.pow(maxRelevance)
+
+                p *= (1.0 - probabilityForRating)
+
+                p * probabilityForRating / rank
+            } else {
+                unRated.add(result.id)
+                null
+            }.also {
+                rank++
+            }
+        }.sum()
+
+        MetricResults.MetricResult(
+            id = ratedSearch.id,
+            metric = err,
+            hits = hits,
+            unRated = unRated
+        )
+    }
+    val globalERR = metricResults.sumOf { it.metric } / metricResults.size
+    return MetricResults(globalERR, metricResults)
 }
 
 suspend fun SearchPlugin.discountedCumulativeGain(
