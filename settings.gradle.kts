@@ -1,4 +1,4 @@
-rootProject.name = "ktranker"
+rootProject.name = "rankquest-core"
 
 pluginManagement {
     repositories {
