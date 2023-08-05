@@ -57,13 +57,13 @@ suspend fun SearchPlugin.precisionAtK(
     relevantRatingThreshold: Int = 1,
     k: Int = 5,
 ): MetricResults {
-    val searchResults = ratedSearches.map { it to fetch(it.searchContext, k) }
+    val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
 
     val metricResults = searchResults.map { (ratedSearch, results) ->
         val unRated = mutableListOf<String>()
         val hits = mutableListOf<Pair<String, Double>>()
 
-        val relevantCount = results.resultList.take(k).count { result ->
+        val relevantCount = results.searchResultList.take(k).count { result ->
             val rating = ratedSearch.ratings[result.id]
             if (rating != null) {
                 val isRelevant = rating.rating >= relevantRatingThreshold
@@ -97,13 +97,13 @@ suspend fun SearchPlugin.recallAtK(
     relevantRatingThreshold: Int = 1,
     k: Int,
 ): MetricResults {
-    val searchResults = ratedSearches.map { it to fetch(it.searchContext, k) }
+    val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow()}
 
     val metricResults = searchResults.map { (ratedSearch, results) ->
         val unRated = mutableListOf<String>()
         val hits = mutableListOf<Pair<String, Double>>()
 
-        val relevantCount = results.resultList.take(k).count { result ->
+        val relevantCount = results.searchResultList.take(k).count { result ->
             val rating = ratedSearch.ratings[result.id]
             if (rating != null) {
                 val isRelevant = rating.rating >= relevantRatingThreshold
@@ -140,12 +140,12 @@ suspend fun SearchPlugin.meanReciprocalRank(
     k: Int,
     relevantRatingThreshold: Int = 1,
 ): MetricResults {
-    val searchResults = ratedSearches.map { it to fetch(it.searchContext, k) }
+    val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
 
     val metricResults = searchResults.map { (ratedSearch, results) ->
         val unRated = mutableListOf<String>()
         val hits = mutableListOf<Pair<String, Double>>()
-        val sum = results.resultList.mapNotNull { result ->
+        val sum = results.searchResultList.mapNotNull { result ->
             val rating = ratedSearch.ratings[result.id]
             if (rating != null) {
                 val reciprocal = if (rating.rating >= relevantRatingThreshold) {
@@ -178,13 +178,13 @@ suspend fun SearchPlugin.discountedCumulativeGain(
     k: Int = 5,
     relevantRatingThreshold: Int = 1,
 ): MetricResults {
-    val searchResults = ratedSearches.map { it to fetch(it.searchContext, k) }
+    val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
 
     val metricResults = searchResults.map { (ratedSearch, results) ->
         val unRated = mutableListOf<String>()
         val hits = mutableListOf<Pair<String, Double>>()
 
-        val dcg = results.resultList.mapIndexedNotNull { index, result ->
+        val dcg = results.searchResultList.mapIndexedNotNull { index, result ->
             val rating = ratedSearch.ratings[result.id]
             if (rating != null) {
                 val isRelevant = rating.rating >= relevantRatingThreshold

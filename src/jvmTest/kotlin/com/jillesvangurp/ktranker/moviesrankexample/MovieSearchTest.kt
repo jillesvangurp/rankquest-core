@@ -13,10 +13,9 @@ class MovieSearchTest {
 
     @Test
     fun shouldSearch() = coRun {
-
-        val results = moviesSearch.fetch(mapOf("query" to "hasta"), 10)
+        val results = moviesSearch.fetch(mapOf("query" to "hasta"), 10).getOrThrow()
 //        println(DEFAULT_PRETTY_JSON.encodeToString(results))
-        results.resultList.first().label shouldContain "Hasta la Vista, baby"
+        results.searchResultList.first().label shouldContain "Hasta la Vista, baby"
 
         val qs = listOf(
             RatedSearch(

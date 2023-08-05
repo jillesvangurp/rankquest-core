@@ -1,7 +1,7 @@
 package com.jillesvangurp.ktranker.moviesrankexample
 
 import com.jilesvangurp.ktranker.DEFAULT_JSON
-import com.jilesvangurp.ktranker.Results
+import com.jilesvangurp.ktranker.SearchResults
 import com.jilesvangurp.ktranker.SearchPlugin
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
@@ -48,14 +48,15 @@ val index by lazy {
 }
 
 class SimpleMoviesSearch : SearchPlugin {
-    override suspend fun fetch(searchContext: Map<String, String>, numberOfItemsToFetch: Int): Results {
-        return measureTimedValue {
+    override suspend fun fetch(searchContext: Map<String, String>, numberOfItemsToFetch: Int): Result<SearchResults> {
+        return Result.success(measureTimedValue {
+            // uses my ktjsearch in memory search engine
             index.search {
                 query = MatchQuery("quote", searchContext["query"] ?: error("search context must have query"))
             }
         }.let { (hits,duration)->
-            Results(hits.size.toLong(),duration,hits.map { Results.Result(it.first, movies[it.first]?.label?:error("")) })
-        }
+            SearchResults(hits.size.toLong(),duration,hits.map { SearchResults.SearchResult(it.first, movies[it.first]?.label?:error("")) })
+        })
     }
 }
 

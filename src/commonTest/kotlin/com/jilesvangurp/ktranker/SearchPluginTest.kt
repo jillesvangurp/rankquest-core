@@ -11,7 +11,7 @@ class SearchPluginTest {
     fun shouldCalculateMeanReciprocal() = coRun {
         val mockPlugin = object : SearchPlugin {
             override suspend fun fetch(searchContext: Map<String, String>, numberOfItemsToFetch: Int) =
-                Results(2, Duration.ZERO, listOf(Results.Result("1"), Results.Result("2")))
+                Result.success(SearchResults(2, Duration.ZERO, listOf(SearchResults.SearchResult("1"), SearchResults.SearchResult("2"))))
         }
 
         val ratedSearches = listOf(
@@ -62,7 +62,7 @@ class SearchPluginTest {
     fun shouldCalculatePrecisionAt() = coRun {
         val mockPlugin = object : SearchPlugin {
             override suspend fun fetch(searchContext: Map<String, String>, numberOfItemsToFetch: Int) =
-                Results(2, Duration.ZERO, listOf(Results.Result("1"), Results.Result("2")))
+                Result.success(SearchResults(2, Duration.ZERO, listOf(SearchResults.SearchResult("1"), SearchResults.SearchResult("2"))))
         }
 
         val ratedSearches = listOf(
@@ -114,7 +114,7 @@ class SearchPluginTest {
     fun calculateRecallAtK() = coRun {
         val mockPlugin = object : SearchPlugin {
             override suspend fun fetch(searchContext: Map<String, String>, numberOfItemsToFetch: Int) =
-                Results(2, Duration.ZERO, listOf(Results.Result("1"), Results.Result("2")))
+                Result.success(SearchResults(2, Duration.ZERO, listOf(SearchResults.SearchResult("1"), SearchResults.SearchResult("2"))))
         }
 
         val ratedSearches = listOf(
