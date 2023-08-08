@@ -56,7 +56,7 @@ kotlin {
                     implementation(Testing.kotest.assertions.core)
                     implementation(KotlinX.coroutines.test)
 
-                    implementation("com.github.jillesvangurp:ktjsearch:_")
+                    implementation("com.github.jillesvangurp:querylight:_")
                 }
             }
 
