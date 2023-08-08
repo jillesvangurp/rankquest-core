@@ -3,6 +3,7 @@ package com.jilesvangurp.rankquest.core
 import com.jilesvangurp.rankquest.core.testutils.coRun
 import io.kotest.matchers.doubles.shouldBeGreaterThan
 import io.kotest.matchers.doubles.shouldBeLessThan
+import io.kotest.matchers.doubles.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlin.test.Test
@@ -104,18 +105,18 @@ class MetricsTest {
                 listOf(5, 5),
                 listOf(5, 5)
             ).ratings(), maxRelevance = 5
-        ).let { err->
+        ).let { err ->
             println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
             err.metric shouldBeGreaterThan 0.95
             err.metric shouldBeLessThan 1.0
         }
-        // nothing relevant 
+        // nothing relevant
         mock().expectedMeanReciprocalRank(
             listOf(
                 listOf(0, 0),
                 listOf(0, 0)
             ).ratings(), maxRelevance = 5
-        ).let { err->
+        ).let { err ->
             println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
             err.metric shouldBe 0.0
         }
@@ -124,10 +125,83 @@ class MetricsTest {
                 listOf(0, 1),
                 listOf(0, 0)
             ).ratings(), maxRelevance = 5
-        ).let { err->
+        ).let { err ->
             println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
-            err.metric shouldBeGreaterThan  0.0
-            err.metric shouldBeLessThan   0.1
+            err.metric shouldBeGreaterThan 0.0
+            err.metric shouldBeLessThan 0.1
+        }
+    }
+
+    @Test
+    fun shouldCalculateNDcg() = coRun {
+        mock().normalizedDiscountedCumulativeGain(
+            listOf(
+                listOf(2, 2),
+                listOf(1, 1)
+            ).ratings()
+        ).let { err ->
+            println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
+            err.metric shouldBe 1.0
+        }
+
+        mock().normalizedDiscountedCumulativeGain(
+            listOf(
+                listOf(2, 2), // 1.0
+                listOf(0, 0) // 0.0
+            ).ratings()
+        ).let { err ->
+            println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
+            err.metric shouldBe 0.5
+        }
+
+
+        mock().normalizedDiscountedCumulativeGain(
+            listOf(
+                listOf(0, 5),
+                listOf(0, 1000)
+            ).ratings()
+        ).let { err ->
+            println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
+            err.metric shouldBeGreaterThan 0.6
+            err.metric shouldBeLessThan 0.7
+        }
+    }
+
+    @Test
+    fun shouldCalculateDcg() = coRun {
+        mock().discountedCumulativeGain(
+            listOf(
+                listOf(2, 2),
+                listOf(1, 1)
+            ).ratings()
+        ).let { err ->
+            println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
+            err.metric shouldBeGreaterThan  3.0
+            err.metric shouldBeLessThan 4.0
+
+        }
+
+        mock().discountedCumulativeGain(
+            listOf(
+                listOf(2, 2), // 1.0
+                listOf(0, 0) // 0.0
+            ).ratings()
+        ).let { err ->
+            println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
+            err.metric shouldBeGreaterThan 2.0
+            err.metric shouldBeLessThan 3.0
+        }
+
+
+        mock().discountedCumulativeGain(
+            listOf(
+                listOf(0, 5),
+                listOf(0, 1)
+            ).ratings()
+        ).let { err ->
+            println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
+            err.metric shouldBeGreaterThan 10.0
+            err.metric shouldBeLessThan 11.0
         }
     }
 }
