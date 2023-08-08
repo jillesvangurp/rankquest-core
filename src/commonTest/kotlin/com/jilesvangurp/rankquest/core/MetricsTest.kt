@@ -1,7 +1,10 @@
 package com.jilesvangurp.rankquest.core
 
 import com.jilesvangurp.rankquest.core.testutils.coRun
+import io.kotest.matchers.doubles.shouldBeGreaterThan
+import io.kotest.matchers.doubles.shouldBeLessThan
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.json.encodeToJsonElement
 import kotlin.test.Test
 import kotlin.time.Duration
 
@@ -92,5 +95,39 @@ class MetricsTest {
 
 
         result.metric shouldBe 1.0
+    }
+
+    @Test
+    fun calculateERR() = coRun {
+        mock().expectedMeanReciprocalRank(
+            listOf(
+                listOf(5, 5),
+                listOf(5, 5)
+            ).ratings(), maxRelevance = 5
+        ).let { err->
+            println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
+            err.metric shouldBeGreaterThan 0.95
+            err.metric shouldBeLessThan 1.0
+        }
+        // nothing relevant 
+        mock().expectedMeanReciprocalRank(
+            listOf(
+                listOf(0, 0),
+                listOf(0, 0)
+            ).ratings(), maxRelevance = 5
+        ).let { err->
+            println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
+            err.metric shouldBe 0.0
+        }
+        mock().expectedMeanReciprocalRank(
+            listOf(
+                listOf(0, 1),
+                listOf(0, 0)
+            ).ratings(), maxRelevance = 5
+        ).let { err->
+            println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
+            err.metric shouldBeGreaterThan  0.0
+            err.metric shouldBeLessThan   0.1
+        }
     }
 }
