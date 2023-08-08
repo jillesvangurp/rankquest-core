@@ -187,14 +187,15 @@ suspend fun SearchPlugin.expectedMeanReciprocalRank(
         var p = 1.0
         var rank = 1
 
+        val powMaxRelevance = 2.0.pow(maxRelevance)
         val err = results.searchResultList.mapIndexedNotNull { index, result ->
             val rating = ratedSearch.ratings[result.id]
             if (rating != null) {
-                val probabilityForRating = (2.0.pow(rating.rating) - 1.0) / 2.0.pow(maxRelevance)
+                val probabilityForRating = (2.0.pow(rating.rating) - 1.0) / powMaxRelevance
 
+                val errLocal = p * probabilityForRating / rank
                 p *= (1.0 - probabilityForRating)
-
-                p * probabilityForRating / rank
+                errLocal
             } else {
                 unRated.add(result.id)
                 null
