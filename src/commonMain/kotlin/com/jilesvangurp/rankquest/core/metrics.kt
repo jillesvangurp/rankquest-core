@@ -139,7 +139,7 @@ suspend fun SearchPlugin.recallAtK(
         )
     }
 
-    val globalRecallAtK = metricResults.map { it.metric }.sum() / metricResults.size
+    val globalRecallAtK = metricResults.sumOf { it.metric } / metricResults.size
     return MetricResults(globalRecallAtK, metricResults)
 }
 
@@ -196,7 +196,7 @@ suspend fun SearchPlugin.expectedMeanReciprocalRank(
         var rank = 1
 
         val powMaxRelevance = 2.0.pow(maxRelevance)
-        val err = results.searchResultList.mapIndexedNotNull { index, result ->
+        val err = results.searchResultList.mapIndexedNotNull { _, result ->
             val rating = ratedSearch.ratings[result.id]?.rating?.let {
                 // normalize things to maxRelevance if they rare higher
                 min(it, maxRelevance)

@@ -3,7 +3,6 @@ package com.jilesvangurp.rankquest.core
 import com.jilesvangurp.rankquest.core.testutils.coRun
 import io.kotest.matchers.doubles.shouldBeGreaterThan
 import io.kotest.matchers.doubles.shouldBeLessThan
-import io.kotest.matchers.doubles.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlin.test.Test
@@ -16,21 +15,17 @@ fun List<List<Int>>.ratings() = indices.map { queryIndex ->
         SearchResultRating("${ratingIndex + 1}", r)
     }.let { searchResultRatings ->
         RatedSearch(
-            id = "${queryIndex + 1}",
-            searchContext = mapOf("query" to "test"),
-            ratings = searchResultRatings
+            id = "${queryIndex + 1}", searchContext = mapOf("query" to "test"), ratings = searchResultRatings
         )
     }
 }
 
 fun mock(ids: List<Int> = listOf(1, 2)) = object : SearchPlugin {
     override suspend fun fetch(
-        searchContext: Map<String, String>,
-        numberOfItemsToFetch: Int
-    ): Result<SearchResults> =
-        ids.map { SearchResults.SearchResult(it.toString()) }.let { results ->
-            Result.success(SearchResults(results.size.toLong(), Duration.ZERO, results))
-        }
+        searchContext: Map<String, String>, numberOfItemsToFetch: Int
+    ): Result<SearchResults> = ids.map { SearchResults.SearchResult(it.toString()) }.let { results ->
+        Result.success(SearchResults(results.size.toLong(), Duration.ZERO, results))
+    }
 }
 
 class MetricsTest {
@@ -38,14 +33,10 @@ class MetricsTest {
     @Test
     fun shouldCalculateMeanReciprocal() = coRun {
         val ratedSearches = listOf(
-            listOf(1, 2),
-            listOf(2, 1)
+            listOf(1, 2), listOf(2, 1)
         ).ratings()
 
-
-        val result =
-            mock().meanReciprocalRank(ratedSearches, k = 2)
-
+        val result = mock().meanReciprocalRank(ratedSearches, k = 2)
 
         result.metric shouldBe (1.0 + 0.5 + 0.5 + 1.0) / 2
     }
@@ -54,31 +45,10 @@ class MetricsTest {
     fun shouldCalculatePrecisionAt() = coRun {
 
         val ratedSearches = listOf(
-            listOf(1, 0),
-            listOf(0, 1)
+            listOf(1, 0), listOf(0, 1)
         ).ratings()
 
-        val result =
-            mock().precisionAtK(ratedSearches, k = 2)
-
-
-        val expectedResults = MetricResults(
-            metric = 0.5,
-            details = listOf(
-                MetricResults.MetricResult(
-                    id = "1",
-                    metric = 0.5,
-                    hits = listOf("1" to 1.0),
-                    unRated = listOf("2")
-                ),
-                MetricResults.MetricResult(
-                    id = "2",
-                    metric = 0.5,
-                    hits = listOf("2" to 1.0),
-                    unRated = listOf("1")
-                )
-            )
-        )
+        val result = mock().precisionAtK(ratedSearches, k = 2)
 
         result.metric shouldBe 0.5
     }
@@ -87,13 +57,10 @@ class MetricsTest {
     fun calculateRecallAtK() = coRun {
 
         val ratedSearches = listOf(
-            listOf(1, 0),
-            listOf(0, 1)
+            listOf(1, 0), listOf(0, 1)
         ).ratings()
 
-        val result =
-            mock().recallAtK(ratedSearches, k = 2)
-
+        val result = mock().recallAtK(ratedSearches, k = 2)
 
         result.metric shouldBe 1.0
     }
@@ -102,8 +69,7 @@ class MetricsTest {
     fun calculateERR() = coRun {
         mock().expectedMeanReciprocalRank(
             listOf(
-                listOf(5, 5),
-                listOf(5, 5)
+                listOf(5, 5), listOf(5, 5)
             ).ratings(), maxRelevance = 5
         ).let { err ->
             println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
@@ -113,8 +79,7 @@ class MetricsTest {
         // nothing relevant
         mock().expectedMeanReciprocalRank(
             listOf(
-                listOf(0, 0),
-                listOf(0, 0)
+                listOf(0, 0), listOf(0, 0)
             ).ratings(), maxRelevance = 5
         ).let { err ->
             println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
@@ -122,8 +87,7 @@ class MetricsTest {
         }
         mock().expectedMeanReciprocalRank(
             listOf(
-                listOf(0, 1),
-                listOf(0, 0)
+                listOf(0, 1), listOf(0, 0)
             ).ratings(), maxRelevance = 5
         ).let { err ->
             println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
@@ -136,8 +100,7 @@ class MetricsTest {
     fun shouldCalculateNDcg() = coRun {
         mock().normalizedDiscountedCumulativeGain(
             listOf(
-                listOf(2, 2),
-                listOf(1, 1)
+                listOf(2, 2), listOf(1, 1)
             ).ratings()
         ).let { err ->
             println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
@@ -157,8 +120,7 @@ class MetricsTest {
 
         mock().normalizedDiscountedCumulativeGain(
             listOf(
-                listOf(0, 5),
-                listOf(0, 1000)
+                listOf(0, 5), listOf(0, 1000)
             ).ratings()
         ).let { err ->
             println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
@@ -171,14 +133,12 @@ class MetricsTest {
     fun shouldCalculateDcg() = coRun {
         mock().discountedCumulativeGain(
             listOf(
-                listOf(2, 2),
-                listOf(1, 1)
+                listOf(2, 2), listOf(1, 1)
             ).ratings()
         ).let { err ->
             println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
-            err.metric shouldBeGreaterThan  3.0
+            err.metric shouldBeGreaterThan 3.0
             err.metric shouldBeLessThan 4.0
-
         }
 
         mock().discountedCumulativeGain(
@@ -195,8 +155,7 @@ class MetricsTest {
 
         mock().discountedCumulativeGain(
             listOf(
-                listOf(0, 5),
-                listOf(0, 1)
+                listOf(0, 5), listOf(0, 1)
             ).ratings()
         ).let { err ->
             println(DEFAULT_PRETTY_JSON.encodeToJsonElement(err))
