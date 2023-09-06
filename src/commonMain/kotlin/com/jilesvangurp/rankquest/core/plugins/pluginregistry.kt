@@ -24,5 +24,9 @@ class PluginFactoryRegistry {
         }
         registry[name] = factory
     }
+
+    operator fun get(name: String): PluginFactory? {
+        return  registry[name]
+    }
 }
 

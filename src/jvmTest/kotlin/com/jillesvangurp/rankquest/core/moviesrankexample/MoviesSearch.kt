@@ -3,6 +3,8 @@ package com.jillesvangurp.rankquest.core.moviesrankexample
 import com.jilesvangurp.rankquest.core.DEFAULT_JSON
 import com.jilesvangurp.rankquest.core.SearchResults
 import com.jilesvangurp.rankquest.core.SearchPlugin
+import com.jilesvangurp.rankquest.core.pluginconfiguration.SearchPluginConfiguration
+import com.jilesvangurp.rankquest.core.plugins.PluginFactory
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import search.*
@@ -58,5 +60,12 @@ class SimpleMoviesSearch : SearchPlugin {
             SearchResults(hits.size.toLong(),duration,hits.map { SearchResults.SearchResult(it.first, movies[it.first]?.label?:error("")) })
         })
     }
+}
+
+class SimpleMoviesSearchFactory() : PluginFactory {
+    override fun create(configuration: SearchPluginConfiguration): SearchPlugin {
+        return SimpleMoviesSearch()
+    }
+
 }
 

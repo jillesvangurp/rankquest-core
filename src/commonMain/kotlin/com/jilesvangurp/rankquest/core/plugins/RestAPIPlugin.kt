@@ -29,7 +29,7 @@ class RestAPIPluginFactory(val httpClient: HttpClient = HttpClient {
     Json(DEFAULT_JSON) {  }
 }): PluginFactory {
     override fun create(configuration: SearchPluginConfiguration): SearchPlugin {
-        val settings = DEFAULT_JSON.decodeFromJsonElement(RestAPIPluginConfig.serializer(), configuration.pluginSettings)
+        val settings = DEFAULT_JSON.decodeFromJsonElement(RestAPIPluginConfig.serializer(), configuration.pluginSettings ?: error("pluginSettings are required for RestAPIPlugin"))
         return RestAPIPlugin(
             httpClient = httpClient,
             searchUrl = settings.searchUrl,

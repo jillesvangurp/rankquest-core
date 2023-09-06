@@ -166,7 +166,7 @@ data class SearchPluginConfiguration(
     val title: String,
     val pluginType: String,
     val fieldConfig: List<SearchContextField>,
-    val pluginSettings: JsonObject,
-    val metrics: List<MetricConfiguration>
+    val metrics: List<MetricConfiguration>,
+    val pluginSettings: JsonObject?=null,
 )
 
