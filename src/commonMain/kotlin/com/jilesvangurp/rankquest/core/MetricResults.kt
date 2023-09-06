@@ -20,7 +20,10 @@ data class MetricResults(
     data class MetricResult(
         val id: String,
         val metric: Double,
-        val hits: List<Pair<String, Double>>,
-        val unRated: List<String>
+        val hits: List<Pair<DocumentReference,Double>>,
+        val unRated: List<DocumentReference>
     )
+
+    @Serializable
+    data class DocumentReference(val docId: String, val label:String?)
 }
