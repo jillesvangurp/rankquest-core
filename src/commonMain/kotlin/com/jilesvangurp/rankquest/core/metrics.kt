@@ -1,65 +1,18 @@
 package com.jilesvangurp.rankquest.core
 
+import com.jilesvangurp.rankquest.core.pluginconfiguration.MetricConfiguration
+import com.jilesvangurp.rankquest.core.pluginconfiguration.MetricParam
 import kotlinx.serialization.Serializable
 import kotlin.math.*
 
-@Serializable
-enum class Metric {
-    PrecisionAtK,
-    RecallAtK,
-    MeanReciprocalRank,
-    ExpectedReciprocalRank,
-    DiscountedCumulativeGain,
+
+suspend fun MetricConfiguration.run(searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>) = metric.run(searchPlugin,ratedSearches,params)
+
+interface MetricImplementation {
+    suspend fun evaluate(
+        searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
+    ): MetricResults
 }
-
-suspend fun SearchPlugin.run(
-    metric: Metric,
-    ratedSearches: List<RatedSearch>,
-    k: Int = 5,
-    relevantRatingThreshold: Int = 1,
-    maxRelevance: Int = 5,
-) = when (metric) {
-    Metric.PrecisionAtK -> precisionAtK(
-        ratedSearches = ratedSearches,
-        k = k,
-        relevantRatingThreshold = relevantRatingThreshold
-    )
-
-    Metric.RecallAtK -> recallAtK(
-        ratedSearches = ratedSearches,
-        k = k,
-        relevantRatingThreshold = relevantRatingThreshold
-    )
-
-    Metric.MeanReciprocalRank -> meanReciprocalRank(
-        ratedSearches = ratedSearches,
-        k = k,
-        relevantRatingThreshold = relevantRatingThreshold,
-    )
-
-    Metric.ExpectedReciprocalRank -> expectedMeanReciprocalRank(ratedSearches, maxRelevance = maxRelevance)
-
-    Metric.DiscountedCumulativeGain -> discountedCumulativeGain(
-        ratedSearches = ratedSearches,
-        k = k
-    )
-}
-
-suspend fun SearchPlugin.runAllMetrics(
-    ratedSearches: List<RatedSearch>,
-    k: Int = 5,
-    relevantRatingThreshold: Int = 1,
-    maxRelevance: Int = 5, // err only
-) =
-    Metric.entries.map {
-        it to run(
-            metric = it,
-            ratedSearches = ratedSearches,
-            k = k,
-            relevantRatingThreshold = relevantRatingThreshold,
-            maxRelevance = maxRelevance
-        )
-    }
 
 suspend fun SearchPlugin.precisionAtK(
     ratedSearches: List<RatedSearch>,
@@ -90,10 +43,7 @@ suspend fun SearchPlugin.precisionAtK(
 
         val precision = relevantCount.toDouble() / k
         MetricResults.MetricResult(
-            id = ratedSearch.id,
-            metric = precision,
-            unRated = unRated,
-            hits = hits
+            id = ratedSearch.id, metric = precision, unRated = unRated, hits = hits
         )
     }
 
@@ -132,10 +82,7 @@ suspend fun SearchPlugin.recallAtK(
         val recall = if (totalRelevant > 0) relevantCount.toDouble() / totalRelevant else 0.0
 
         MetricResults.MetricResult(
-            id = ratedSearch.id,
-            metric = recall,
-            hits = hits,
-            unRated = unRated
+            id = ratedSearch.id, metric = recall, hits = hits, unRated = unRated
         )
     }
 
@@ -171,10 +118,7 @@ suspend fun SearchPlugin.meanReciprocalRank(
             }
         }.sum()
         MetricResults.MetricResult(
-            id = ratedSearch.id,
-            metric = sum,
-            unRated = unRated,
-            hits = hits
+            id = ratedSearch.id, metric = sum, unRated = unRated, hits = hits
         )
     }
 
@@ -218,20 +162,20 @@ suspend fun SearchPlugin.expectedMeanReciprocalRank(
         }.sum()
 
         MetricResults.MetricResult(
-            id = ratedSearch.id,
-            metric = err,
-            hits = hits,
-            unRated = unRated
+            id = ratedSearch.id, metric = err, hits = hits, unRated = unRated
         )
     }
     val globalERR = metricResults.sumOf { it.metric } / metricResults.size
     return MetricResults(globalERR, metricResults)
 }
 
-private fun dcg(rs: List<Pair<MetricResults.DocumentReference,Int?>>, hits: MutableList<Pair<MetricResults.DocumentReference, Double>>): Double {
+private fun dcg(
+    rs: List<Pair<MetricResults.DocumentReference, Int?>>,
+    hits: MutableList<Pair<MetricResults.DocumentReference, Double>>
+): Double {
     var rank = 1
     var dcg = 0.0
-    rs.forEach {(d,r) ->
+    rs.forEach { (d, r) ->
         if (r != null && r != 0) {
             val dcgLocal = (2.0.pow(r) - 1) / ((ln((rank + 1).toDouble()) / ln(2.0)))
             hits.add(d to dcgLocal)
@@ -251,24 +195,23 @@ suspend fun SearchPlugin.discountedCumulativeGain(
     val metricResults = searchResults.map { (ratedSearch, results) ->
         val hits = mutableListOf<Pair<MetricResults.DocumentReference, Double>>()
 
-        val unRated = results.searchResultList.filter { ratedSearch.ratings[it.id] == null }.map { MetricResults.DocumentReference(it.id, it.label) }
+        val unRated = results.searchResultList.filter { ratedSearch.ratings[it.id] == null }
+            .map { MetricResults.DocumentReference(it.id, it.label) }
         val rs = results.searchResultList.map { result ->
-            MetricResults.DocumentReference(result.id,result.label) to ratedSearch.ratings[result.id]?.rating
+            MetricResults.DocumentReference(result.id, result.label) to ratedSearch.ratings[result.id]?.rating
         }
 
         val dcg = dcg(rs, hits)
 
         MetricResults.MetricResult(
-            id = ratedSearch.id,
-            metric = dcg,
-            hits = hits,
-            unRated = unRated
+            id = ratedSearch.id, metric = dcg, hits = hits, unRated = unRated
         )
     }
 
     val globalDCG = metricResults.sumOf { it.metric } / metricResults.size
     return MetricResults(globalDCG, metricResults)
 }
+
 suspend fun SearchPlugin.normalizedDiscountedCumulativeGain(
     ratedSearches: List<RatedSearch>,
     k: Int = 5,
@@ -278,14 +221,16 @@ suspend fun SearchPlugin.normalizedDiscountedCumulativeGain(
     val metricResults = searchResults.map { (ratedSearch, results) ->
         val hits = mutableListOf<Pair<MetricResults.DocumentReference, Double>>()
 
-        val unRated = results.searchResultList.filter { ratedSearch.ratings[it.id] == null }.map { MetricResults.DocumentReference(it.id,it.label) }
+        val unRated = results.searchResultList.filter { ratedSearch.ratings[it.id] == null }
+            .map { MetricResults.DocumentReference(it.id, it.label) }
         val rs = results.searchResultList.map { result ->
             MetricResults.DocumentReference(result.id, result.label) to ratedSearch.ratings[result.id]?.rating
         }
 
-        val dcg = dcg(rs,hits)
+        val dcg = dcg(rs, hits)
 
-        val allRatings = ratedSearch.ratings.map { MetricResults.DocumentReference(it.documentId,it.label) to it.rating }.reversed()
+        val allRatings =
+            ratedSearch.ratings.map { MetricResults.DocumentReference(it.documentId, it.label) to it.rating }.reversed()
         val idcg = dcg(allRatings.subList(0, min(allRatings.size, rs.size)), mutableListOf())
         val normalized = if (idcg == 0.0) {
             0.0
@@ -293,10 +238,7 @@ suspend fun SearchPlugin.normalizedDiscountedCumulativeGain(
             dcg / idcg
         }
         MetricResults.MetricResult(
-            id = ratedSearch.id,
-            metric = normalized,
-            hits = hits,
-            unRated = unRated
+            id = ratedSearch.id, metric = normalized, hits = hits, unRated = unRated
         )
     }
 

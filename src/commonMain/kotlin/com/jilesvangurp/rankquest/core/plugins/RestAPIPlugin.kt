@@ -3,16 +3,43 @@ package com.jilesvangurp.rankquest.core.plugins
 import com.jilesvangurp.rankquest.core.DEFAULT_JSON
 import com.jilesvangurp.rankquest.core.SearchResults
 import com.jilesvangurp.rankquest.core.SearchPlugin
+import com.jilesvangurp.rankquest.core.pluginconfiguration.SearchPluginConfiguration
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 import kotlin.time.measureTimedValue
 
 
 class RestStatusException(val status: Int) : Exception("unexpected rest status $status")
 class JsonPathError(val path: List<String>) : Exception("json element not found at $path")
+
+@Serializable
+data class RestAPIPluginConfig(
+    val searchUrl: String,
+    val authorization: String?,
+    val jsonPathToHits: List<String>,
+    val jsonPathToId: List<String>,
+    val jsonPathToLabel: List<String>?,
+)
+
+class RestAPIPluginFactory(val httpClient: HttpClient = HttpClient {
+    Json(DEFAULT_JSON) {  }
+}): PluginFactory {
+    override fun create(configuration: SearchPluginConfiguration): SearchPlugin {
+        val settings = DEFAULT_JSON.decodeFromJsonElement(RestAPIPluginConfig.serializer(), configuration.pluginSettings)
+        return RestAPIPlugin(
+            httpClient = httpClient,
+            searchUrl = settings.searchUrl,
+            authorization = settings.authorization,
+            jsonPathToHits = settings.jsonPathToHits,
+            jsonPathToId = settings.jsonPathToId,
+            jsonPathToLabel = settings.jsonPathToLabel
+        )
+    }
+}
 
 /**
  * Simple API Search Plugin that assumes you are calling a search endpoint
@@ -87,5 +114,4 @@ fun JsonObject.get(path: List<String>): JsonElement? {
         break
     }
     return jsonElement
-
 }
