@@ -151,7 +151,7 @@ sealed interface SearchContextField {
  * A plugin configuration is a complete description of how to use a given search service
  * to calculate metrics.
  *
- * It must include a [title] and a [pluginType] which is used to lookup and configure the correct implementation.
+ * It must include a [name] and a [pluginType] which is used to lookup and configure the correct implementation.
  *
  * [fieldConfig] defines a list of search context fields that are needed to complete a search (this is what goes in rated searches).
  * These are the parameters that your search service or API expects
@@ -163,10 +163,14 @@ sealed interface SearchContextField {
  */
 @Serializable
 data class SearchPluginConfiguration(
-    val title: String,
+    val name: String,
     val pluginType: String,
     val fieldConfig: List<SearchContextField>,
     val metrics: List<MetricConfiguration>,
     val pluginSettings: JsonObject?=null,
 )
+
+@Serializable
+data class MetricsOutput(val searchConfigurationName: String,val configuration: MetricConfiguration, val results: MetricResults)
+
 
