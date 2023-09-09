@@ -74,6 +74,8 @@ kotlin {
                 implementation("org.slf4j:jul-to-slf4j:_")
                 implementation("ch.qos.logback:logback-classic:_")
                 implementation(Ktor.client.cio)
+                implementation(Ktor.server.core)
+                implementation(Ktor.server.netty)
             }
         }
 

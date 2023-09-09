@@ -3,7 +3,9 @@ package com.jilesvangurp.rankquest.core
 import com.jilesvangurp.rankquest.core.testutils.coRun
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.doubles.shouldBeGreaterThan
+import io.kotest.matchers.doubles.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.doubles.shouldBeLessThan
+import io.kotest.matchers.doubles.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlin.test.Test
@@ -114,7 +116,6 @@ class MetricsTest {
             result.details.forEach {mr ->
                 mr.hits shouldHaveAtLeastSize 1
             }
-
         }
 
         mock().normalizedDiscountedCumulativeGain(
@@ -136,6 +137,26 @@ class MetricsTest {
             println(DEFAULT_PRETTY_JSON.encodeToJsonElement(result))
             result.metric shouldBeGreaterThan 0.6
             result.metric shouldBeLessThan 0.7
+        }
+    }
+
+    @Test
+    fun shouldCalculateNdcgBetween0and1() = coRun {
+        // these results have
+        mock(listOf(1,2,3,4,5)).normalizedDiscountedCumulativeGain(
+            listOf(
+                listOf(3, 2), listOf(5, 1)
+            ).ratings()
+        ).let { result ->
+            result.metric shouldBe   1.0
+        }
+        mock(listOf(1,2,3,4,5).reversed()).normalizedDiscountedCumulativeGain(
+            listOf(
+                listOf(3, 2), listOf(5, 1)
+            ).ratings()
+        ).let { result ->
+            result.metric shouldBeGreaterThanOrEqual  0.0
+            result.metric shouldBeLessThanOrEqual  1.0
         }
     }
 
