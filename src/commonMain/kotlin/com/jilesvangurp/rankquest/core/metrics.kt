@@ -192,14 +192,14 @@ private fun dcgExponential(
 }
 
 private fun linearDcg(
-    rs: List<Pair<MetricResults.DocumentReference, Int?>>,
+    hitsWithRating: List<Pair<MetricResults.DocumentReference, Int?>>,
     hits: MutableList<Pair<MetricResults.DocumentReference, Double>>
 ): Double {
     var position = 1
     var dcg = 0.0
-    rs.forEach { (documentReference, gains) ->
-        if (gains != null && gains > 0) {
-            val dcgForHit = gains / ln((position + 1).toDouble())
+    hitsWithRating.forEach { (documentReference, rating) ->
+        if (rating != null && rating > 0) {
+            val dcgForHit = rating / ln((position + 1).toDouble())
             hits.add(documentReference to dcgForHit)
             dcg += dcgForHit
         }
@@ -221,11 +221,11 @@ suspend fun SearchPlugin.discountedCumulativeGain(
 
         val unRated = results.searchResultList.filter { ratedSearch.ratings[it.id] == null }
             .map { MetricResults.DocumentReference(it.id, it.label) }
-        val rs = results.searchResultList.map { result ->
+        val hitsWithRating = results.searchResultList.map { result ->
             MetricResults.DocumentReference(result.id, result.label) to ratedSearch.ratings[result.id]?.rating
         }
 
-        val dcg = dcgFunction(rs, hits)
+        val dcg = dcgFunction(hitsWithRating, hits)
 
         MetricResults.MetricResult(
             id = ratedSearch.id, metric = dcg, hits = hits, unRated = unRated
@@ -241,7 +241,7 @@ suspend fun SearchPlugin.normalizedDiscountedCumulativeGain(
     k: Int = 5,
     useLinearDcg: Boolean= true
 ): MetricResults {
-    val dcgFunctino = if(useLinearDcg) ::linearDcg else ::dcgExponential
+    val dcgFunction = if(useLinearDcg) ::linearDcg else ::dcgExponential
 
     val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
 
@@ -254,14 +254,17 @@ suspend fun SearchPlugin.normalizedDiscountedCumulativeGain(
             MetricResults.DocumentReference(result.id, result.label) to ratedSearch.ratings[result.id]?.rating
         }
 
-        val dcg = dcgFunctino(rs, hits)
+        val dcg = dcgFunction(rs, hits)
 
         val allRatings =
-            ratedSearch.ratings.map { MetricResults.DocumentReference(it.documentId, it.label) to it.rating }.reversed()
+            ratedSearch.ratings
+                .map { MetricResults.DocumentReference(it.documentId, it.label) to it.rating }
+                // best rated should be at the beginning
+                .sortedByDescending { (_, r) -> r }
 
         // ideal dcg of the best rated things coming out on top
-        val idcg = dcgFunctino(
-            allRatings.subList(0, min(allRatings.size, rs.size)).sortedByDescending { (_, r) -> r },
+        val idcg = dcgFunction(
+            allRatings.subList(0, min(allRatings.size, rs.size)),
             mutableListOf()
         )
         val normalized = if (idcg == 0.0) {
