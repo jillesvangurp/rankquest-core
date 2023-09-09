@@ -7,6 +7,7 @@ import io.kotest.matchers.doubles.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.doubles.shouldBeLessThan
 import io.kotest.matchers.doubles.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlin.test.Test
 import kotlin.time.Duration
@@ -20,6 +21,8 @@ fun List<List<Int>>.ratings() = indices.map { queryIndex ->
         RatedSearch(
             id = "${queryIndex + 1}", searchContext = mapOf("query" to "test"), ratings = searchResultRatings
         )
+    }.also {
+        println(DEFAULT_PRETTY_JSON.encodeToString(it))
     }
 }
 
@@ -35,13 +38,16 @@ class MetricsTest {
 
     @Test
     fun shouldCalculateMeanReciprocal() = coRun {
-        val ratedSearches = listOf(
-            listOf(1, 2), listOf(2, 1)
-        ).ratings()
-
-        val result = mock().meanReciprocalRank(ratedSearches, k = 2)
-
-        result.metric shouldBe (1.0 + 0.5 + 0.5 + 1.0) / 2
+        mock(listOf(1, 2)).meanReciprocalRank(
+            listOf(
+                listOf(1, 2), listOf(2, 1)
+            ).ratings(), k = 2, relevantRatingThreshold = 2
+        ).metric shouldBe (0.5 + 1) / 2.0
+        mock(listOf(2, 1)).meanReciprocalRank(
+            listOf(
+                listOf(1, 2), listOf(2, 1)
+            ).ratings(), k = 2, relevantRatingThreshold = 1
+        ).metric shouldBe (1 + 1) /2.0
     }
 
     @Test

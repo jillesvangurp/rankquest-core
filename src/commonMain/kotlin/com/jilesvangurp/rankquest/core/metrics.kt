@@ -99,24 +99,30 @@ suspend fun SearchPlugin.meanReciprocalRank(
     val metricResults = searchResults.map { (ratedSearch, results) ->
         val unRated = mutableListOf<MetricResults.DocumentReference>()
         val hits = mutableListOf<Pair<MetricResults.DocumentReference, Double>>()
-        val sum = results.searchResultList.mapNotNull { result ->
+        var position=1
+
+        val reciprocal = results.searchResultList.map { result ->
             val rating = ratedSearch.ratings[result.id]
             if (rating != null) {
                 val reciprocal = if (rating.rating >= relevantRatingThreshold) {
-                    1.0 / rating.rating
+                    1.0 / position
                 } else {
                     0.0
+                }.also {
+                    println("$position ${rating.rating} $it")
                 }
                 hits.add(MetricResults.DocumentReference(result.id, result.label) to reciprocal)
                 reciprocal
 
             } else {
                 unRated.add(MetricResults.DocumentReference(result.id, result.label))
-                null
+                0.0
+            }.also {
+                position++
             }
-        }.sum()
+        }.firstOrNull {it >0} ?: 0.0
         MetricResults.MetricResult(
-            id = ratedSearch.id, metric = sum, unRated = unRated, hits = hits
+            id = ratedSearch.id, metric = reciprocal, unRated = unRated, hits = hits
         )
     }
 
@@ -135,7 +141,7 @@ suspend fun SearchPlugin.expectedMeanReciprocalRank(
         val hits = mutableListOf<Pair<MetricResults.DocumentReference, Double>>()
 
         var p = 1.0
-        var rank = 1
+        var position = 1
 
         val powMaxRelevance = 2.0.pow(maxRelevance)
         val err = results.searchResultList.mapIndexedNotNull { _, result ->
@@ -146,16 +152,16 @@ suspend fun SearchPlugin.expectedMeanReciprocalRank(
             if (rating != null) {
                 val probabilityForRating = (2.0.pow(rating) - 1.0) / powMaxRelevance
 
-                val errLocal = p * probabilityForRating / rank
+                val errForHit = p * probabilityForRating / position
                 p *= (1.0 - probabilityForRating)
-                hits.add(MetricResults.DocumentReference(result.id, result.label) to errLocal)
-                errLocal
+                hits.add(MetricResults.DocumentReference(result.id, result.label) to errForHit)
+                errForHit
 
             } else {
                 unRated.add(MetricResults.DocumentReference(result.id, result.label))
                 null
             }.also {
-                rank++
+                position++
             }
         }.sum()
 
