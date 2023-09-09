@@ -1,12 +1,10 @@
 package com.jilesvangurp.rankquest.core
 
-import com.jilesvangurp.rankquest.core.pluginconfiguration.MetricConfiguration
 import com.jilesvangurp.rankquest.core.pluginconfiguration.MetricParam
-import kotlinx.serialization.Serializable
-import kotlin.math.*
+import kotlin.math.ln
+import kotlin.math.min
+import kotlin.math.pow
 
-
-suspend fun MetricConfiguration.run(searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>) = metric.run(searchPlugin,ratedSearches,params)
 
 interface MetricImplementation {
     suspend fun evaluate(
@@ -169,16 +167,17 @@ suspend fun SearchPlugin.expectedMeanReciprocalRank(
     return MetricResults(globalERR, metricResults)
 }
 
-private fun dcg(
+private fun dcgExponential(
     rs: List<Pair<MetricResults.DocumentReference, Int?>>,
     hits: MutableList<Pair<MetricResults.DocumentReference, Double>>
 ): Double {
+    // loosely based on what elastic does, not sure why they divide by ln(2.0)
     var rank = 1
     var dcg = 0.0
-    rs.forEach { (d, r) ->
+    rs.forEach { (documentReference, r) ->
         if (r != null && r != 0) {
             val dcgLocal = (2.0.pow(r) - 1) / ((ln((rank + 1).toDouble()) / ln(2.0)))
-            hits.add(d to dcgLocal)
+            hits.add(documentReference to dcgLocal)
             dcg += dcgLocal
         }
         rank++
@@ -186,10 +185,29 @@ private fun dcg(
     return dcg
 }
 
+private fun linearDcg(
+    rs: List<Pair<MetricResults.DocumentReference, Int?>>,
+    hits: MutableList<Pair<MetricResults.DocumentReference, Double>>
+): Double {
+    var position = 1
+    var dcg = 0.0
+    rs.forEach { (documentReference, gains) ->
+        if (gains != null && gains > 0) {
+            val dcgForHit = gains / ln((position + 1).toDouble())
+            hits.add(documentReference to dcgForHit)
+            dcg += dcgForHit
+        }
+        position++
+    }
+    return dcg
+}
+
 suspend fun SearchPlugin.discountedCumulativeGain(
     ratedSearches: List<RatedSearch>,
     k: Int = 5,
+    useLinearDcg: Boolean= false
 ): MetricResults {
+    val dcgFunction = if(useLinearDcg) ::linearDcg else ::dcgExponential
     val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
 
     val metricResults = searchResults.map { (ratedSearch, results) ->
@@ -201,21 +219,24 @@ suspend fun SearchPlugin.discountedCumulativeGain(
             MetricResults.DocumentReference(result.id, result.label) to ratedSearch.ratings[result.id]?.rating
         }
 
-        val dcg = dcg(rs, hits)
+        val dcg = dcgFunction(rs, hits)
 
         MetricResults.MetricResult(
             id = ratedSearch.id, metric = dcg, hits = hits, unRated = unRated
         )
     }
 
-    val globalDCG = metricResults.sumOf { it.metric } / metricResults.size
-    return MetricResults(globalDCG, metricResults)
+    val averageDcg = metricResults.sumOf { it.metric } / metricResults.size
+    return MetricResults(averageDcg, metricResults)
 }
 
 suspend fun SearchPlugin.normalizedDiscountedCumulativeGain(
     ratedSearches: List<RatedSearch>,
     k: Int = 5,
+    useLinearDcg: Boolean= false
 ): MetricResults {
+    val dcgFunctino = if(useLinearDcg) ::linearDcg else ::dcgExponential
+
     val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
 
     val metricResults = searchResults.map { (ratedSearch, results) ->
@@ -227,11 +248,16 @@ suspend fun SearchPlugin.normalizedDiscountedCumulativeGain(
             MetricResults.DocumentReference(result.id, result.label) to ratedSearch.ratings[result.id]?.rating
         }
 
-        val dcg = dcg(rs, hits)
+        val dcg = dcgFunctino(rs, hits)
 
         val allRatings =
             ratedSearch.ratings.map { MetricResults.DocumentReference(it.documentId, it.label) to it.rating }.reversed()
-        val idcg = dcg(allRatings.subList(0, min(allRatings.size, rs.size)), mutableListOf())
+
+        // ideal dcg of the best rated things coming out on top
+        val idcg = dcgFunctino(
+            allRatings.subList(0, min(allRatings.size, rs.size)).sortedByDescending { (_, r) -> r },
+            mutableListOf()
+        )
         val normalized = if (idcg == 0.0) {
             0.0
         } else {
@@ -242,6 +268,6 @@ suspend fun SearchPlugin.normalizedDiscountedCumulativeGain(
         )
     }
 
-    val globalDCG = metricResults.sumOf { it.metric } / metricResults.size
-    return MetricResults(globalDCG, metricResults)
+    val averageDcg = metricResults.sumOf { it.metric } / metricResults.size
+    return MetricResults(averageDcg, metricResults)
 }

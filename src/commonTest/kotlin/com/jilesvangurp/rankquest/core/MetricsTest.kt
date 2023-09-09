@@ -141,7 +141,7 @@ class MetricsTest {
     }
 
     @Test
-    fun shouldCalculateNdcgBetween0and1() = coRun {
+    fun shouldCalculateNdcgBetween_0_and_1() = coRun {
         // these results have
         mock(listOf(1,2,3,4,5)).normalizedDiscountedCumulativeGain(
             listOf(
