@@ -239,7 +239,7 @@ suspend fun SearchPlugin.discountedCumulativeGain(
 suspend fun SearchPlugin.normalizedDiscountedCumulativeGain(
     ratedSearches: List<RatedSearch>,
     k: Int = 5,
-    useLinearDcg: Boolean= true
+    useLinearDcg: Boolean= false
 ): MetricResults {
     val dcgFunction = if(useLinearDcg) ::linearDcg else ::dcgExponential
 
