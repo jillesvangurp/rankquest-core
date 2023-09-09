@@ -14,13 +14,14 @@ interface PluginFactory {
 enum class BuiltinPlugins {
     JsonGetAPIPlugin,
     JsonPostAPIPlugin,
-    ElasticSearch, // TODO
+    ElasticSearch,
 }
 
 class PluginFactoryRegistry(httpClient: HttpClient= HttpClient { Json { DEFAULT_JSON } }) {
     private val registry: MutableMap<String, PluginFactory> = mutableMapOf(
         BuiltinPlugins.JsonGetAPIPlugin.name to JsonGetAPIPluginFactory(httpClient=httpClient),
         BuiltinPlugins.JsonPostAPIPlugin.name to JsonPostAPIPluginFactory(httpClient=httpClient),
+        BuiltinPlugins.ElasticSearch.name to ElasticsearchPluginFactory()
     )
 
     fun register(name:String, factory: PluginFactory) {

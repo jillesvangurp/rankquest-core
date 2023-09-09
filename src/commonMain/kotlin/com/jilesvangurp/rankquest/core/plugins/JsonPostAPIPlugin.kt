@@ -50,6 +50,7 @@ fun String.applySearchContext(searchContext: Map<String,String>): String {
     }
     return templated
 }
+
 /**
  * Simple API Search Plugin that assumes you are calling a search endpoint
  * with some query parameters (your search context) that returns a json object that has a list

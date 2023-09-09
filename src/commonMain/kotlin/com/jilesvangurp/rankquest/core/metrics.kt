@@ -76,8 +76,8 @@ suspend fun SearchPlugin.recallAtK(
             }
         }
 
-        val totalRelevant = ratedSearch.ratings.count { it.rating >= relevantRatingThreshold }
-        val recall = if (totalRelevant > 0) relevantCount.toDouble() / totalRelevant else 0.0
+        val expectedRelevantDocuments = ratedSearch.ratings.count { it.rating >= relevantRatingThreshold }
+        val recall = if (expectedRelevantDocuments > 0) relevantCount.toDouble() / expectedRelevantDocuments else 0.0
 
         MetricResults.MetricResult(
             id = ratedSearch.id, metric = recall, hits = hits, unRated = unRated
@@ -108,8 +108,6 @@ suspend fun SearchPlugin.meanReciprocalRank(
                     1.0 / position
                 } else {
                     0.0
-                }.also {
-                    println("$position ${rating.rating} $it")
                 }
                 hits.add(MetricResults.DocumentReference(result.id, result.label) to reciprocal)
                 reciprocal

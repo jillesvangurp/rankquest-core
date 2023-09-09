@@ -44,6 +44,8 @@ kotlin {
                     api(KotlinX.datetime)
                     api(Ktor.client.serialization)
                     api("io.ktor:ktor-serialization-kotlinx-json:_")
+                    api("com.jillesvangurp:search-client:_")
+
                 }
             }
 
