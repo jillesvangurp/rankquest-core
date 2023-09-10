@@ -4,7 +4,6 @@ import com.jilesvangurp.rankquest.core.DEFAULT_JSON
 import com.jillesvangurp.ktsearch.SearchResponse
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldNotContain
-import io.kotest.matchers.string.shouldNotStartWith
 import kotlin.test.Test
 
 class ElasticsearchPluginTest {

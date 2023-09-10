@@ -144,13 +144,17 @@ sealed interface SearchContextField {
     @Serializable
     @SerialName("str")
     data class StringField(
-        override val name: String, @EncodeDefault val placeHolder: String = ""
+        override val name: String,
+        @EncodeDefault val defaultValue: String = "",
+        @EncodeDefault val placeHolder: String = "",
     ) : SearchContextField
 
     @Serializable
     @SerialName("int")
     data class IntField(
-        override val name: String, @EncodeDefault val defaultValue: Int = 0
+        override val name: String,
+        @EncodeDefault val defaultValue: Int = 0,
+        @EncodeDefault val placeHolder: String = "",
     ) : SearchContextField
 
     @Serializable
