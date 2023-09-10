@@ -1,6 +1,7 @@
 package com.jilesvangurp.rankquest.core.plugins
 
 import com.jilesvangurp.rankquest.core.DEFAULT_JSON
+import io.kotest.matchers.sequences.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -30,6 +31,23 @@ class JsonPostAPIPluginKtTest {
                 obj["f3"]?.jsonPrimitive?.content shouldBe "p3"
                 obj["f4"]?.jsonPrimitive?.content shouldBe "p4"
             }
+        }
+    }
+
+
+    @Test
+    fun shouldListVariables() {
+        val template="""
+            {
+                "f1":"{{ param1 }}",
+                "f2":"{{param2 }}",
+                "f3":"{{    param3}}",
+                "f4":"{{param4}}"                
+            }
+        """.trimIndent()
+        val re = "\\{\\{\\s*(.*?)\\s*\\}\\}".toRegex(RegexOption.MULTILINE)
+        re.findAll(template).let {
+            it.shouldHaveSize(4)
         }
     }
 }

@@ -19,6 +19,7 @@ class MovieSearchTest {
     }
 
     val moviesSearchConfig = SearchPluginConfiguration(
+        id="movies",
         "My Movies Search",
         "movies",
         fieldConfig = listOf(SearchContextField.StringField("query")),

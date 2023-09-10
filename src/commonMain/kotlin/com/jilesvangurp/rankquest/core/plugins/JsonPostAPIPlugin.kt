@@ -45,7 +45,7 @@ class JsonPostAPIPluginFactory(
 fun String.applySearchContext(searchContext: Map<String,String>): String {
     var templated=this
     searchContext.forEach { (key,value) ->
-        val regex = "\\{\\{\\s*$key\\s*\\}\\}".toRegex()
+        val regex = "\\{\\{\\s*$key\\s*\\}\\}".toRegex(RegexOption.MULTILINE)
         templated=templated.replace(regex,value)
     }
     return templated

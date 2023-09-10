@@ -88,6 +88,7 @@ class JsonRestPluginsTest {
 
 
             val config = SearchPluginConfiguration(
+                id = "get-it",
                 name = "get-it",
                 pluginType = BuiltinPlugins.JsonGetAPIPlugin.name,
                 fieldConfig = listOf(),
@@ -121,6 +122,7 @@ class JsonRestPluginsTest {
 
 
             val config = SearchPluginConfiguration(
+                id="post-it",
                 name = "post-it",
                 pluginType = BuiltinPlugins.JsonPostAPIPlugin.name,
                 fieldConfig = listOf(
