@@ -176,6 +176,7 @@ sealed interface SearchContextField {
  */
 @Serializable
 data class SearchPluginConfiguration(
+    val id: String,
     val name: String,
     val pluginType: String,
     val fieldConfig: List<SearchContextField>,
