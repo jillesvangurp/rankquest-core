@@ -209,9 +209,9 @@ private fun linearDcg(
 suspend fun SearchPlugin.discountedCumulativeGain(
     ratedSearches: List<RatedSearch>,
     k: Int = 5,
-    useLinearDcg: Boolean= false
+    useLinearGains: Boolean= false
 ): MetricResults {
-    val dcgFunction = if(useLinearDcg) ::linearDcg else ::dcgExponential
+    val dcgFunction = if(useLinearGains) ::linearDcg else ::dcgExponential
     val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
 
     val metricResults = searchResults.map { (ratedSearch, results) ->
@@ -237,9 +237,9 @@ suspend fun SearchPlugin.discountedCumulativeGain(
 suspend fun SearchPlugin.normalizedDiscountedCumulativeGain(
     ratedSearches: List<RatedSearch>,
     k: Int = 5,
-    useLinearDcg: Boolean= false
+    useLinearGains: Boolean= false
 ): MetricResults {
-    val dcgFunction = if(useLinearDcg) ::linearDcg else ::dcgExponential
+    val dcgFunction = if(useLinearGains) ::linearDcg else ::dcgExponential
 
     val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
 

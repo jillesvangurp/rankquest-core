@@ -5,6 +5,13 @@ import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.int
+
+val Int.primitive get() = JsonPrimitive(this)
+val Boolean.primitive get() = JsonPrimitive(this)
+val String.primitive get() = JsonPrimitive(this)
 
 @Serializable
 enum class Metric(
@@ -12,111 +19,120 @@ enum class Metric(
 ) {
     PrecisionAtK(
         supportedParams = listOf(
-            MetricParam("k", 5),
-            MetricParam("relevantRatingThreshold", 1),
+            MetricParam("k", 5.primitive),
+            MetricParam("relevantRatingThreshold", 1.primitive),
         ),
 
         ),
     RecallAtK(
         supportedParams = listOf(
-            MetricParam("k", 5),
-            MetricParam("relevantRatingThreshold", 1),
+            MetricParam("k", 5.primitive),
+            MetricParam("relevantRatingThreshold", 1.primitive),
         ),
     ),
     MeanReciprocalRank(
         supportedParams = listOf(
-            MetricParam("k", 5),
-            MetricParam("relevantRatingThreshold", 1),
+            MetricParam("k", 5.primitive),
+            MetricParam("relevantRatingThreshold", 1.primitive),
         ),
     ),
     ExpectedReciprocalRank(
         supportedParams = listOf(
-            MetricParam("maxRelevance", 5),
+            MetricParam("maxRelevance", 5.primitive),
         ),
     ),
     DiscountedCumulativeGain(
         supportedParams = listOf(
-            MetricParam("k", 5),
+            MetricParam("k", 5.primitive),
+            MetricParam("useLinearGains", false.primitive)
         ),
     ),
     NormalizedDiscountedCumulativeGain(
         supportedParams = listOf(
-            MetricParam("k", 5),
-
-            ),
+            MetricParam("k", 5.primitive),
+            MetricParam("useLinearGains", false.primitive)
+        ),
     ), ;
 
     internal fun getIntParamValue(name: String, params: List<MetricParam>): Int =
-        (params.firstOrNull { it.name == name } ?: PrecisionAtK.supportedParams.firstOrNull { it.name == name })?.let {
-            it.value
-        } ?: 1
+        (params.firstOrNull { it.name == name } ?: supportedParams.firstOrNull { it.name == name })?.value?.int
+            ?: 1
+
+    internal fun getBoolParamValue(name: String, params: List<MetricParam>): Boolean =
+        (params.firstOrNull { it.name == name }
+            ?: supportedParams.firstOrNull { it.name == name })?.value?.boolean ?: true
 
     suspend fun run(searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>) =
         implementation.evaluate(searchPlugin, ratedSearches, params)
 }
 
-internal val Metric.implementation
-    get() = when (this) {
-        Metric.PrecisionAtK -> object : MetricImplementation {
-            override suspend fun evaluate(
-                searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
-            ): MetricResults = searchPlugin.precisionAtK(
-                ratedSearches = ratedSearches,
-                relevantRatingThreshold = Metric.PrecisionAtK.getIntParamValue("relevantRatingThreshold", params),
-                k = Metric.PrecisionAtK.getIntParamValue("k", params)
-            )
-        }
+internal val Metric.implementation: MetricImplementation
+    get() {
+        val metric = this
+        return when (metric) {
+            Metric.PrecisionAtK -> object : MetricImplementation {
+                override suspend fun evaluate(
+                    searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
+                ): MetricResults = searchPlugin.precisionAtK(
+                    ratedSearches = ratedSearches,
+                    relevantRatingThreshold = metric.getIntParamValue("relevantRatingThreshold", params),
+                    k = metric.getIntParamValue("k", params)
+                )
+            }
 
-        Metric.RecallAtK -> object : MetricImplementation {
-            override suspend fun evaluate(
-                searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
-            ): MetricResults = searchPlugin.recallAtK(
-                ratedSearches = ratedSearches,
-                relevantRatingThreshold = Metric.PrecisionAtK.getIntParamValue("relevantRatingThreshold", params),
-                k = Metric.PrecisionAtK.getIntParamValue("k", params)
-            )
-        }
+            Metric.RecallAtK -> object : MetricImplementation {
+                override suspend fun evaluate(
+                    searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
+                ): MetricResults = searchPlugin.recallAtK(
+                    ratedSearches = ratedSearches,
+                    relevantRatingThreshold = metric.getIntParamValue("relevantRatingThreshold", params),
+                    k = metric.getIntParamValue("k", params)
+                )
+            }
 
-        Metric.MeanReciprocalRank -> object : MetricImplementation {
-            override suspend fun evaluate(
-                searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
-            ): MetricResults = searchPlugin.meanReciprocalRank(
-                ratedSearches = ratedSearches,
-                relevantRatingThreshold = Metric.PrecisionAtK.getIntParamValue("relevantRatingThreshold", params),
-                k = Metric.PrecisionAtK.getIntParamValue("k", params)
-            )
-        }
+            Metric.MeanReciprocalRank -> object : MetricImplementation {
+                override suspend fun evaluate(
+                    searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
+                ): MetricResults = searchPlugin.meanReciprocalRank(
+                    ratedSearches = ratedSearches,
+                    relevantRatingThreshold = metric.getIntParamValue("relevantRatingThreshold", params),
+                    k = metric.getIntParamValue("k", params)
+                )
+            }
 
-        Metric.ExpectedReciprocalRank -> object : MetricImplementation {
-            override suspend fun evaluate(
-                searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
-            ): MetricResults = searchPlugin.expectedMeanReciprocalRank(
-                ratedSearches = ratedSearches,
-                maxRelevance = Metric.PrecisionAtK.getIntParamValue("maxRelevance", params),
-            )
-        }
+            Metric.ExpectedReciprocalRank -> object : MetricImplementation {
+                override suspend fun evaluate(
+                    searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
+                ): MetricResults = searchPlugin.expectedMeanReciprocalRank(
+                    ratedSearches = ratedSearches,
+                    maxRelevance = metric.getIntParamValue("maxRelevance", params),
+                )
+            }
 
-        Metric.DiscountedCumulativeGain -> object : MetricImplementation {
-            override suspend fun evaluate(
-                searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
-            ): MetricResults = searchPlugin.discountedCumulativeGain(
-                ratedSearches = ratedSearches,
-                k = Metric.PrecisionAtK.getIntParamValue("k", params),
-            )
-        }
+            Metric.DiscountedCumulativeGain -> object : MetricImplementation {
+                override suspend fun evaluate(
+                    searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
+                ): MetricResults = searchPlugin.discountedCumulativeGain(
+                    ratedSearches = ratedSearches,
+                    k = metric.getIntParamValue("k", params),
+                    useLinearGains = metric.getBoolParamValue("useLinearGains", params)
+                )
+            }
 
-        Metric.NormalizedDiscountedCumulativeGain -> object : MetricImplementation {
-            override suspend fun evaluate(
-                searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
-            ): MetricResults = searchPlugin.normalizedDiscountedCumulativeGain(
-                ratedSearches = ratedSearches,
-                k = Metric.NormalizedDiscountedCumulativeGain.getIntParamValue("k", params)
-            )
+            Metric.NormalizedDiscountedCumulativeGain -> object : MetricImplementation {
+                override suspend fun evaluate(
+                    searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
+                ): MetricResults = searchPlugin.normalizedDiscountedCumulativeGain(
+                    ratedSearches = ratedSearches,
+                    k = metric.getIntParamValue("k", params),
+                    useLinearGains = metric.getBoolParamValue("useLinearGains", params)
+                )
+            }
         }
     }
 
 @Serializable
-data class MetricParam(val name: String, val value: Int)
+data class MetricParam(val name: String, val value: JsonPrimitive)
 
 @Serializable
 data class MetricConfiguration(val name: String, val metric: Metric, val params: List<MetricParam>)
@@ -128,23 +144,20 @@ sealed interface SearchContextField {
     @Serializable
     @SerialName("str")
     data class StringField(
-        override val name: String,
-        @EncodeDefault val placeHolder: String = "enter a query"
-    ): SearchContextField
+        override val name: String, @EncodeDefault val placeHolder: String = "enter a query"
+    ) : SearchContextField
 
     @Serializable
     @SerialName("int")
     data class IntField(
-        override val name: String,
-        val defaultValue: Int = 0
-    ): SearchContextField
+        override val name: String, val defaultValue: Int = 0
+    ) : SearchContextField
 
     @Serializable
     @SerialName("bool")
     data class BoolField(
-        override val name: String,
-        val defaultValue: Boolean = false
-    ): SearchContextField
+        override val name: String, val defaultValue: Boolean = false
+    ) : SearchContextField
 }
 
 /**
@@ -167,10 +180,12 @@ data class SearchPluginConfiguration(
     val pluginType: String,
     val fieldConfig: List<SearchContextField>,
     val metrics: List<MetricConfiguration>,
-    val pluginSettings: JsonObject?=null,
+    val pluginSettings: JsonObject? = null,
 )
 
 @Serializable
-data class MetricsOutput(val searchConfigurationName: String,val configuration: MetricConfiguration, val results: MetricResults)
+data class MetricsOutput(
+    val searchConfigurationName: String, val configuration: MetricConfiguration, val results: MetricResults
+)
 
 
