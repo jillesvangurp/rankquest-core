@@ -5,7 +5,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
 fun JsonObject.getString(path: List<String>) = get(path)?.let {
-    if (it is JsonPrimitive) it.content else null
+    if (it is JsonPrimitive) it.content else it.toString()
 }
 
 fun JsonObject.get(path: List<String>): JsonElement? {
@@ -13,9 +13,11 @@ fun JsonObject.get(path: List<String>): JsonElement? {
     for (e in path) {
         if (jsonElement is JsonObject) {
             jsonElement = jsonElement.get(e)
-        } else
+        } else {
             jsonElement = null
-        break
+            break
+        }
     }
+
     return jsonElement
 }

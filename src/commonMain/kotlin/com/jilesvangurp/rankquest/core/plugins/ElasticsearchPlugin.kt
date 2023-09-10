@@ -4,10 +4,7 @@ import com.jilesvangurp.rankquest.core.DEFAULT_JSON
 import com.jilesvangurp.rankquest.core.SearchPlugin
 import com.jilesvangurp.rankquest.core.SearchResults
 import com.jilesvangurp.rankquest.core.pluginconfiguration.SearchPluginConfiguration
-import com.jillesvangurp.ktsearch.KtorRestClient
-import com.jillesvangurp.ktsearch.SearchClient
-import com.jillesvangurp.ktsearch.search
-import com.jillesvangurp.ktsearch.total
+import com.jillesvangurp.ktsearch.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -57,9 +54,7 @@ class ElasticsearchPlugin(val configuration: ElasticsearchPluginConfiguration) :
         return try {
             client.search(configuration.index, query).let {
                 SearchResults(it.total, it.took?.milliseconds ?: ZERO, it.hits?.hits?.map { hit ->
-                    SearchResults.SearchResult(hit.id, configuration.labelFields?.map { field ->
-                        hit.source?.get(field)?.jsonPrimitive?.content ?: "-"
-                    }?.joinToString(" | "))
+                    SearchResults.SearchResult(hit.id, configuration.labelFields?.parseLabel(hit)?:"-")
                 }.orEmpty())
             }.let {
                 Result.success(it)
@@ -68,4 +63,14 @@ class ElasticsearchPlugin(val configuration: ElasticsearchPluginConfiguration) :
             Result.failure(e)
         }
     }
+}
+
+fun List<String>?.parseLabel(hit:SearchResponse.Hit): String? {
+    return this?.map { field ->
+        try {
+            hit.source?.getString(field.split('.').map { it.trim() }.toList()) ?: "-"
+        } catch (e: IllegalArgumentException) {
+            field
+        }
+    }?.joinToString(" | ")
 }
