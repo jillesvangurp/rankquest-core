@@ -1,4 +1,22 @@
-Rankquest is a simple rank evalution toolset that can be used to benchmark any API that returns search results.
+Rankquest is a kotlin multiplatform rank evalution library that can be used to benchmark any API that returns search results.
+
+## Rankquest Studio
+
+Rankquest powers [Rankquest Studio](https://rankquest.jillesvangurp.com). This is a nice web UI for creating and
+evaluating test cases that uses rankquest core. Using it require no installation. Everything happens in the browser and your configuration and test cases are stored locally in the browser. Like rankquest-core, Rankquest Studio is open source and you can find the source code [here](https://github.com/jillesvangurp/rankquest-studio).
+
+## Features
+
+This library provides portable implementations of common search rank evaluation algorithms. Currently it supports:
+
+- PrecisionAtK
+- RecallAtK
+- MeanReciprocalRank
+- ExpectedReciprocalRank
+- DiscountedCumulativeGain
+- NormalizedDiscountedCumulativeGain
+
+Additionally it provides a lot of data classes that you can use to work with test cases, plugin configurations, and metric output. These data classes are of course Json serializable and are what Rankquest Studio uses for importing and exporting these as well.
 
 ## Why?
 
@@ -8,13 +26,6 @@ to implement search solutions. But of course there are many alternatives. Also, 
 Rankquest addresses this by being implementation neutral. It works with anything that returns some kind of ordered list of results.
 
 Making this a Kotlin multi platform library enables a few nice features, including embedding this in a kotlin-js web application where it can run entirely in the browser. One of my ambitions with this is developing a browser based application that can be used with any kind of search REST API to evaluate it's ranking. With some simple import/export tools for the queries and ratings, this could run stand alone with very little effort.
-
-## Development status
-
-This is very much a work in progress. My goal is to evolve it and have a simple set of tools that 
-you can work with on the command line, via docker, or via kotlin based web UIs.
-
-Currently, it has simple implementations similar to what elasticsearch provides in it's `rank_eval` API that can be applied to manually rates searches that are produced by an implementation of the `SearchPlugin` interface.
 
 ## How?
 
