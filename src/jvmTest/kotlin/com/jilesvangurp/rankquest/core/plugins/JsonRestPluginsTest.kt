@@ -81,6 +81,7 @@ class JsonRestPluginsTest {
             val rp = JsonGetAPIPluginConfig(
                 searchUrl = "http://localhost:$serverPort/search_get",
                 requestHeaders = mapOf(),
+                searchContextParams = mapOf(),
                 jsonPathToHits = listOf("hits"),
                 jsonPathToId = listOf("id"),
                 jsonPathToLabel = listOf("label"),

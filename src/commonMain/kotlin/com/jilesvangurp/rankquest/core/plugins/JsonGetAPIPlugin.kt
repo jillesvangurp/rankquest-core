@@ -20,6 +20,7 @@ class JsonPathError(val path: List<String>) : Exception("json element not found 
 data class JsonGetAPIPluginConfig(
     val searchUrl: String,
     val requestHeaders: Map<String, String>,
+    val searchContextParams: Map<String,String>,
     val jsonPathToHits: List<String>,
     val jsonPathToId: List<String>,
     val jsonPathToLabel: List<String>?,
