@@ -86,8 +86,7 @@ class JsonRestPluginsTest {
                 jsonPathToId = listOf("id"),
                 jsonPathToLabel = listOf("label"),
             )
-
-
+            
             val config = SearchPluginConfiguration(
                 id = "get-it",
                 name = "get-it",
