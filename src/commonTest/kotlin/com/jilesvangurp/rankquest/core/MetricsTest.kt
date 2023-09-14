@@ -56,7 +56,7 @@ class MetricsTest {
                 listOf(1, 0), listOf(0, 1)
             ).ratings(),
             k = 2
-        ).metric shouldBe 1.0
+        ).metric shouldBe 0.5
         mock().precisionAtK(
             ratedSearches = listOf(
                 listOf(1, 1, 2, 2), listOf(2, 2, 1, 1)

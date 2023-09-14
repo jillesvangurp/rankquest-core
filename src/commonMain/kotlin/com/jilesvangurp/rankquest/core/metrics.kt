@@ -40,13 +40,8 @@ suspend fun SearchPlugin.precisionAtK(
             }
         }
 
-        val expectedResults = ratedSearch.ratings.sortedByDescending { it.rating }.take(k).count { it.rating >= relevantRatingThreshold }
-        val min = min(k, expectedResults)
-        val precision = if(min==0) {
-            0.0
-        } else {
-            (relevantCount.toDouble() / min)
-        }
+        val precision = relevantCount.toDouble() / k
+
         MetricResults.MetricResult(
             id = ratedSearch.id, metric = precision, unRated = unRated, hits = hits
         )
