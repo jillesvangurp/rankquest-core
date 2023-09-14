@@ -103,7 +103,7 @@ internal val Metric.implementation: MetricImplementation
             Metric.ExpectedReciprocalRank -> object : MetricImplementation {
                 override suspend fun evaluate(
                     searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
-                ): MetricResults = searchPlugin.expectedMeanReciprocalRank(
+                ): MetricResults = searchPlugin.expectedReciprocalRank(
                     ratedSearches = ratedSearches,
                     maxRelevance = metric.getIntParamValue("maxRelevance", params),
                 )

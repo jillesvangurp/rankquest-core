@@ -21,8 +21,6 @@ fun List<List<Int>>.ratings() = indices.map { queryIndex ->
         RatedSearch(
             id = "${queryIndex + 1}", searchContext = mapOf("query" to "test"), ratings = searchResultRatings
         )
-    }.also {
-        println(DEFAULT_PRETTY_JSON.encodeToString(it))
     }
 }
 
@@ -53,13 +51,19 @@ class MetricsTest {
     @Test
     fun shouldCalculatePrecisionAt() = coRun {
 
-        val ratedSearches = listOf(
-            listOf(1, 0), listOf(0, 1)
-        ).ratings()
-
-        val result = mock().precisionAtK(ratedSearches, k = 2)
-
-        result.metric shouldBe 0.5
+        mock().precisionAtK(
+            ratedSearches = listOf(
+                listOf(1, 0), listOf(0, 1)
+            ).ratings(),
+            k = 2
+        ).metric shouldBe 1.0
+        mock().precisionAtK(
+            ratedSearches = listOf(
+                listOf(1, 1, 2, 2), listOf(2, 2, 1, 1)
+            ).ratings(),
+            k = 2,
+            relevantRatingThreshold = 2
+        ).metric shouldBe 0.5
     }
 
     @Test
@@ -76,7 +80,7 @@ class MetricsTest {
 
     @Test
     fun calculateERR() = coRun {
-        mock().expectedMeanReciprocalRank(
+        mock().expectedReciprocalRank(
             listOf(
                 listOf(5, 5), listOf(5, 5)
             ).ratings(), maxRelevance = 5
@@ -90,7 +94,7 @@ class MetricsTest {
             }
         }
         // nothing relevant
-        mock().expectedMeanReciprocalRank(
+        mock().expectedReciprocalRank(
             listOf(
                 listOf(0, 0), listOf(0, 0)
             ).ratings(), maxRelevance = 5
@@ -98,7 +102,7 @@ class MetricsTest {
             println(DEFAULT_PRETTY_JSON.encodeToJsonElement(result))
             result.metric shouldBe 0.0
         }
-        mock().expectedMeanReciprocalRank(
+        mock().expectedReciprocalRank(
             listOf(
                 listOf(0, 1), listOf(0, 0)
             ).ratings(), maxRelevance = 5

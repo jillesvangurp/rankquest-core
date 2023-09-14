@@ -2,6 +2,7 @@ package com.jilesvangurp.rankquest.core
 
 import com.jilesvangurp.rankquest.core.pluginconfiguration.MetricParam
 import kotlin.math.ln
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
@@ -39,7 +40,13 @@ suspend fun SearchPlugin.precisionAtK(
             }
         }
 
-        val precision = relevantCount.toDouble() / k
+        val expectedResults = ratedSearch.ratings.sortedByDescending { it.rating }.take(k).count { it.rating >= relevantRatingThreshold }
+        val min = min(k, expectedResults)
+        val precision = if(min==0) {
+            0.0
+        } else {
+            (relevantCount.toDouble() / min)
+        }
         MetricResults.MetricResult(
             id = ratedSearch.id, metric = precision, unRated = unRated, hits = hits
         )
@@ -76,7 +83,7 @@ suspend fun SearchPlugin.recallAtK(
             }
         }
 
-        val expectedRelevantDocuments = ratedSearch.ratings.count { it.rating >= relevantRatingThreshold }
+        val expectedRelevantDocuments = min(ratedSearch.ratings.sortedByDescending { it.rating }.count { it.rating >= relevantRatingThreshold },k)
         val recall = if (expectedRelevantDocuments > 0) relevantCount.toDouble() / expectedRelevantDocuments else 0.0
 
         MetricResults.MetricResult(
@@ -99,7 +106,7 @@ suspend fun SearchPlugin.meanReciprocalRank(
     val metricResults = searchResults.map { (ratedSearch, results) ->
         val unRated = mutableListOf<MetricResults.DocumentReference>()
         val hits = mutableListOf<Pair<MetricResults.DocumentReference, Double>>()
-        var position=1
+        var position = 1
 
         val reciprocal = results.searchResultList.map { result ->
             val rating = ratedSearch.ratings[result.id]
@@ -118,7 +125,7 @@ suspend fun SearchPlugin.meanReciprocalRank(
             }.also {
                 position++
             }
-        }.firstOrNull {it >0} ?: 0.0
+        }.firstOrNull { it > 0 } ?: 0.0
         MetricResults.MetricResult(
             id = ratedSearch.id, metric = reciprocal, unRated = unRated, hits = hits
         )
@@ -128,11 +135,12 @@ suspend fun SearchPlugin.meanReciprocalRank(
     return MetricResults(meanReciprocalRank, metricResults)
 }
 
-suspend fun SearchPlugin.expectedMeanReciprocalRank(
+suspend fun SearchPlugin.expectedReciprocalRank(
     ratedSearches: List<RatedSearch>,
     maxRelevance: Int = 5,
+    k: Int = 5
 ): MetricResults {
-    val searchResults = ratedSearches.map { it to fetch(it.searchContext, ratedSearches.size).getOrThrow() }
+    val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
 
     val metricResults = searchResults.map { (ratedSearch, results) ->
         val unRated = mutableListOf<MetricResults.DocumentReference>()
@@ -209,9 +217,9 @@ private fun linearDcg(
 suspend fun SearchPlugin.discountedCumulativeGain(
     ratedSearches: List<RatedSearch>,
     k: Int = 5,
-    useLinearGains: Boolean= false
+    useLinearGains: Boolean = false
 ): MetricResults {
-    val dcgFunction = if(useLinearGains) ::linearDcg else ::dcgExponential
+    val dcgFunction = if (useLinearGains) ::linearDcg else ::dcgExponential
     val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
 
     val metricResults = searchResults.map { (ratedSearch, results) ->
@@ -237,9 +245,9 @@ suspend fun SearchPlugin.discountedCumulativeGain(
 suspend fun SearchPlugin.normalizedDiscountedCumulativeGain(
     ratedSearches: List<RatedSearch>,
     k: Int = 5,
-    useLinearGains: Boolean= false
+    useLinearGains: Boolean = false
 ): MetricResults {
-    val dcgFunction = if(useLinearGains) ::linearDcg else ::dcgExponential
+    val dcgFunction = if (useLinearGains) ::linearDcg else ::dcgExponential
 
     val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
 
