@@ -38,6 +38,7 @@ enum class Metric(
     ),
     ExpectedReciprocalRank(
         supportedParams = listOf(
+            MetricParam("k", 5.primitive),
             MetricParam("maxRelevance", 5.primitive),
         ),
     ),
