@@ -20,18 +20,23 @@ class JsonPathError(val path: List<String>) : Exception("json element not found 
 data class JsonGetAPIPluginConfig(
     val searchUrl: String,
     val requestHeaders: Map<String, String>,
-    val searchContextParams: Map<String,String>,
+    val searchContextParams: Map<String, String>,
     val jsonPathToHits: List<String>,
     val jsonPathToId: List<String>,
     val jsonPathToLabel: List<String>?,
     val jsonPathToSize: List<String>?,
 )
 
-class JsonGetAPIPluginFactory(val httpClient: HttpClient = HttpClient {
-    Json(DEFAULT_JSON) {  }
-}): PluginFactory {
+class JsonGetAPIPluginFactory(
+    val httpClient: HttpClient = HttpClient {
+        Json(DEFAULT_JSON) { }
+    }
+) : PluginFactory {
     override fun create(configuration: SearchPluginConfiguration): SearchPlugin {
-        val settings = DEFAULT_JSON.decodeFromJsonElement(JsonGetAPIPluginConfig.serializer(), configuration.pluginSettings ?: error("pluginSettings are required for RestAPIPlugin"))
+        val settings = DEFAULT_JSON.decodeFromJsonElement(
+            JsonGetAPIPluginConfig.serializer(),
+            configuration.pluginSettings ?: error("pluginSettings are required for RestAPIPlugin")
+        )
         return JsonGetAPIPlugin(
             httpClient = httpClient,
             searchUrl = settings.searchUrl,
@@ -55,7 +60,7 @@ class JsonGetAPIPluginFactory(val httpClient: HttpClient = HttpClient {
 class JsonGetAPIPlugin(
     private val httpClient: HttpClient,
     private val searchUrl: String,
-    private val requestHeaders: Map<String,String>,
+    private val requestHeaders: Map<String, String>,
     private val jsonPathToHits: List<String>,
     private val jsonPathToId: List<String>,
     private val jsonPathToLabel: List<String>?,
@@ -81,7 +86,7 @@ class JsonGetAPIPlugin(
             val hits = obj.get(jsonPathToHits)
             if (hits is JsonArray) {
                 try {
-                    val (searchResultList, responseTime) = measureTimedValue {
+                    val searchResultList =
                         hits.map { hit ->
                             if (hit is JsonObject) {
                                 val id = hit.getString(jsonPathToId)
@@ -94,8 +99,8 @@ class JsonGetAPIPlugin(
                                 }
                             } else throw JsonPathError(jsonPathToHits)
                         }
-                    }
-                    Result.success(SearchResults(size?:searchResultList.size.toLong(), duration, searchResultList))
+
+                    Result.success(SearchResults(size ?: searchResultList.size.toLong(), duration, searchResultList))
                 } catch (e: Exception) {
                     Result.failure(e)
                 }
