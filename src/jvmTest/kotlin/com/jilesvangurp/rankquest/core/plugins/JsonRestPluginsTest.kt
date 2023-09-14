@@ -1,7 +1,6 @@
 package com.jilesvangurp.rankquest.core.plugins
 
 import com.jilesvangurp.rankquest.core.DEFAULT_JSON
-import com.jilesvangurp.rankquest.core.DEFAULT_PRETTY_JSON
 import com.jilesvangurp.rankquest.core.pluginconfiguration.SearchContextField
 import com.jilesvangurp.rankquest.core.pluginconfiguration.SearchPluginConfiguration
 import com.jilesvangurp.rankquest.core.testutils.coRun
@@ -26,7 +25,7 @@ import org.junit.Test
 data class SampleHit(val id: String, val label: String)
 
 @Serializable
-data class SampleResponse(val hits: List<SampleHit>)
+data class SampleResponse(val size: Long, val hits: List<SampleHit>)
 
 private val serverPort = 8666
 
@@ -43,9 +42,13 @@ suspend fun withServer(block: suspend () -> Unit) {
                 call.respondText(
                     DEFAULT_JSON.encodeToString(
                         SampleResponse(
+                            10,
                             listOf(
                                 SampleHit("1", "one"),
                                 SampleHit("2", "two"),
+                                SampleHit("3", "two"),
+                                SampleHit("4", "two"),
+                                SampleHit("5", "two"),
                             )
                         )
                     ), contentType = ContentType.Application.Json
@@ -57,9 +60,13 @@ suspend fun withServer(block: suspend () -> Unit) {
                 call.respondText(
                     DEFAULT_JSON.encodeToString(
                         SampleResponse(
+                            10,
                             listOf(
                                 SampleHit("1", "one"),
                                 SampleHit("2", "two"),
+                                SampleHit("3", "two"),
+                                SampleHit("4", "two"),
+                                SampleHit("5", "two"),
                             )
                         )
                     ), contentType = ContentType.Application.Json
@@ -85,8 +92,9 @@ class JsonRestPluginsTest {
                 jsonPathToHits = listOf("hits"),
                 jsonPathToId = listOf("id"),
                 jsonPathToLabel = listOf("label"),
+                jsonPathToSize = listOf("size"),
             )
-            
+
             val config = SearchPluginConfiguration(
                 id = "get-it",
                 name = "get-it",
@@ -98,7 +106,7 @@ class JsonRestPluginsTest {
             val plugin = pluginFactoryRegistry[config.pluginType]!!.create(config)
 
             val response = plugin.fetch(mapOf(), 5).getOrThrow()
-            response.total shouldBe 2
+            response.total shouldBe 10
         }
     }
 
@@ -118,6 +126,7 @@ class JsonRestPluginsTest {
                 jsonPathToHits = listOf("hits"),
                 jsonPathToId = listOf("id"),
                 jsonPathToLabel = listOf("label"),
+                jsonPathToSize = listOf("size")
             )
 
 
@@ -139,7 +148,7 @@ class JsonRestPluginsTest {
                     "q" to "ohai"
                 ), 5
             ).getOrThrow()
-            response.total shouldBe 2
+            response.total shouldBe 10
         }
     }
 }

@@ -50,4 +50,31 @@ class JsonPostAPIPluginKtTest {
             it.shouldHaveSize(4)
         }
     }
+
+    @Test
+    fun shouldBeValidJsonAfterReplace() {
+        val template = """
+            {
+            	"from": 0,
+            	"size": 5,
+            	"groupIds": ["jRsP7_j9X1DRoAGr-I3GDg"],
+            	"userId": "v6x2stTEE5njhCn1gSYVsA",
+            	"text": "{{ text }}",
+            	"objectTypes": [],
+            	"orTags": [],
+            	"excludeTags": [],
+            	"centroid": {
+            		"lat": 52.506907788863074,
+            		"lon": 13.435339336434751
+            	},
+            	"includeDeleted": true
+            }
+        """.trimIndent()
+
+        template.applySearchContext(mapOf("text" to "OHAI")).let {
+            val o = DEFAULT_JSON.decodeFromString<JsonObject>(it)
+            println(o)
+        }
+
+    }
 }

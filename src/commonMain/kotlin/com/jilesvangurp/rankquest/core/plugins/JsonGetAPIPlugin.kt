@@ -24,6 +24,7 @@ data class JsonGetAPIPluginConfig(
     val jsonPathToHits: List<String>,
     val jsonPathToId: List<String>,
     val jsonPathToLabel: List<String>?,
+    val jsonPathToSize: List<String>?,
 )
 
 class JsonGetAPIPluginFactory(val httpClient: HttpClient = HttpClient {
@@ -37,7 +38,8 @@ class JsonGetAPIPluginFactory(val httpClient: HttpClient = HttpClient {
             requestHeaders = settings.requestHeaders,
             jsonPathToHits = settings.jsonPathToHits,
             jsonPathToId = settings.jsonPathToId,
-            jsonPathToLabel = settings.jsonPathToLabel
+            jsonPathToLabel = settings.jsonPathToLabel,
+            jsonPathToSize = settings.jsonPathToSize,
         )
     }
 }
@@ -57,19 +59,24 @@ class JsonGetAPIPlugin(
     private val jsonPathToHits: List<String>,
     private val jsonPathToId: List<String>,
     private val jsonPathToLabel: List<String>?,
-) : SearchPlugin {
+    private val jsonPathToSize: List<String>?,
+
+    ) : SearchPlugin {
     override suspend fun fetch(searchContext: Map<String, String>, numberOfItemsToFetch: Int): Result<SearchResults> {
-        val response = httpClient.get(searchUrl) {
-            accept(ContentType.Application.Json)
-            requestHeaders.forEach {(key,value) ->
-                header(key,value)
-            }
-            searchContext.forEach { (k, v) ->
-                parameter(k, v)
+        val (response, duration) = measureTimedValue {
+            httpClient.get(searchUrl) {
+                accept(ContentType.Application.Json)
+                requestHeaders.forEach { (key, value) ->
+                    header(key, value)
+                }
+                searchContext.forEach { (k, v) ->
+                    parameter(k, v)
+                }
             }
         }
         return if (response.status.isSuccess()) {
             val obj = DEFAULT_JSON.decodeFromString<JsonObject>(response.bodyAsText())
+            val size = jsonPathToSize?.let { obj.get(jsonPathToSize)?.jsonPrimitive?.longOrNull }
 
             val hits = obj.get(jsonPathToHits)
             if (hits is JsonArray) {
@@ -88,7 +95,7 @@ class JsonGetAPIPlugin(
                             } else throw JsonPathError(jsonPathToHits)
                         }
                     }
-                    Result.success(SearchResults(searchResultList.size.toLong(), responseTime, searchResultList))
+                    Result.success(SearchResults(size?:searchResultList.size.toLong(), duration, searchResultList))
                 } catch (e: Exception) {
                     Result.failure(e)
                 }
