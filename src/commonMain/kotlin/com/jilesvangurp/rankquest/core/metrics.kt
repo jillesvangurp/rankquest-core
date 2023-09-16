@@ -1,25 +1,16 @@
 package com.jilesvangurp.rankquest.core
 
-import com.jilesvangurp.rankquest.core.pluginconfiguration.MetricParam
 import kotlin.math.ln
-import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
-
-
-interface MetricImplementation {
-    suspend fun evaluate(
-        searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
-    ): MetricResults
-}
 
 suspend fun SearchPlugin.precisionAtK(
     ratedSearches: List<RatedSearch>,
     relevantRatingThreshold: Int = 1,
     k: Int = 5,
+    chunkSize: Int = 4,
 ): MetricResults {
-    val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
-
+    val searchResults = fetchAll(ratedSearches, k, chunkSize)
     val metricResults = searchResults.map { (ratedSearch, results) ->
         val unRated = mutableListOf<MetricResults.DocumentReference>()
         val hits = mutableListOf<Pair<MetricResults.DocumentReference, Double>>()
@@ -55,8 +46,9 @@ suspend fun SearchPlugin.recallAtK(
     ratedSearches: List<RatedSearch>,
     relevantRatingThreshold: Int = 1,
     k: Int,
+    chunkSize: Int = 4,
 ): MetricResults {
-    val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
+    val searchResults = fetchAll(ratedSearches, k, chunkSize)
 
     val metricResults = searchResults.map { (ratedSearch, results) ->
         val unRated = mutableListOf<MetricResults.DocumentReference>()
@@ -78,7 +70,8 @@ suspend fun SearchPlugin.recallAtK(
             }
         }
 
-        val expectedRelevantDocuments = min(ratedSearch.ratings.sortedByDescending { it.rating }.count { it.rating >= relevantRatingThreshold },k)
+        val expectedRelevantDocuments =
+            min(ratedSearch.ratings.sortedByDescending { it.rating }.count { it.rating >= relevantRatingThreshold }, k)
         val recall = if (expectedRelevantDocuments > 0) relevantCount.toDouble() / expectedRelevantDocuments else 0.0
 
         MetricResults.MetricResult(
@@ -95,8 +88,9 @@ suspend fun SearchPlugin.meanReciprocalRank(
     ratedSearches: List<RatedSearch>,
     k: Int,
     relevantRatingThreshold: Int = 1,
+    chunkSize: Int = 4,
 ): MetricResults {
-    val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
+    val searchResults = fetchAll(ratedSearches, k, chunkSize)
 
     val metricResults = searchResults.map { (ratedSearch, results) ->
         val unRated = mutableListOf<MetricResults.DocumentReference>()
@@ -133,9 +127,10 @@ suspend fun SearchPlugin.meanReciprocalRank(
 suspend fun SearchPlugin.expectedReciprocalRank(
     ratedSearches: List<RatedSearch>,
     maxRelevance: Int = 5,
-    k: Int = 5
-): MetricResults {
-    val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
+    k: Int = 5,
+    chunkSize: Int = 4,
+    ): MetricResults {
+    val searchResults = fetchAll(ratedSearches, k, chunkSize)
 
     val metricResults = searchResults.map { (ratedSearch, results) ->
         val unRated = mutableListOf<MetricResults.DocumentReference>()
@@ -212,10 +207,11 @@ private fun linearDcg(
 suspend fun SearchPlugin.discountedCumulativeGain(
     ratedSearches: List<RatedSearch>,
     k: Int = 5,
-    useLinearGains: Boolean = false
+    useLinearGains: Boolean = false,
+    chunkSize: Int = 4,
 ): MetricResults {
     val dcgFunction = if (useLinearGains) ::linearDcg else ::dcgExponential
-    val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
+    val searchResults = fetchAll(ratedSearches, k, chunkSize)
 
     val metricResults = searchResults.map { (ratedSearch, results) ->
         val hits = mutableListOf<Pair<MetricResults.DocumentReference, Double>>()
@@ -240,11 +236,12 @@ suspend fun SearchPlugin.discountedCumulativeGain(
 suspend fun SearchPlugin.normalizedDiscountedCumulativeGain(
     ratedSearches: List<RatedSearch>,
     k: Int = 5,
-    useLinearGains: Boolean = false
+    useLinearGains: Boolean = false,
+    chunkSize: Int = 4,
 ): MetricResults {
     val dcgFunction = if (useLinearGains) ::linearDcg else ::dcgExponential
 
-    val searchResults = ratedSearches.map { it to fetch(it.searchContext, k).getOrThrow() }
+    val searchResults = fetchAll(ratedSearches, k, chunkSize)
 
     val metricResults = searchResults.map { (ratedSearch, results) ->
         val hits = mutableListOf<Pair<MetricResults.DocumentReference, Double>>()

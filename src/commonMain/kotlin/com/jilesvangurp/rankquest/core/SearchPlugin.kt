@@ -1,5 +1,8 @@
 package com.jilesvangurp.rankquest.core
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 
@@ -9,7 +12,6 @@ data class SearchResults(val total: Long, val responseTime: Duration, val search
     @Serializable
     data class SearchResult(val id: String, val label: String? = null)
 }
-
 
 
 /**
@@ -26,17 +28,16 @@ interface SearchPlugin {
     suspend fun fetch(searchContext: Map<String, String>, numberOfItemsToFetch: Int): Result<SearchResults>
 }
 
-/**
- * Use this to quickly convert a search to a RatedSearch. You can edit the ratings later.
- */
-suspend fun SearchPlugin.initializeRatedSearch(searchContext: Map<String, String>, numberOfItemsToFetch: Int): Result<RatedSearch> {
-    return fetch(searchContext, numberOfItemsToFetch).map { results ->
-        var rating = results.searchResultList.size
-        RatedSearch("", searchContext, results.searchResultList.map {
-            SearchResultRating(it.id, rating--, it.label)
-        })
+suspend fun SearchPlugin.fetchAll(ratedSearches: List<RatedSearch>, k: Int, chunkSize: Int = 4): List<Pair<RatedSearch, SearchResults>> {
+    return ratedSearches.chunked(chunkSize).flatMap  {chunk ->
+        coroutineScope {
+            chunk.map {
+                async {
+                    it to fetch(it.searchContext,k).getOrThrow()
+                }
+            }.awaitAll()
+        }
     }
 }
-
 
 

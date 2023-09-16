@@ -63,74 +63,51 @@ enum class Metric(
         (params.firstOrNull { it.name == name }
             ?: supportedParams.firstOrNull { it.name == name })?.value?.boolean ?: true
 
-    suspend fun run(searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>) =
-        implementation.evaluate(searchPlugin, ratedSearches, params)
-}
+    suspend fun run(searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>, chunkSize: Int = 4) =
+        when (this) {
+            PrecisionAtK -> searchPlugin.precisionAtK(
+                ratedSearches = ratedSearches,
+                relevantRatingThreshold = getIntParamValue("relevantRatingThreshold", params),
+                k = getIntParamValue("k", params),
+                chunkSize = chunkSize
+            )
 
-internal val Metric.implementation: MetricImplementation
-    get() {
-        val metric = this
-        return when (metric) {
-            Metric.PrecisionAtK -> object : MetricImplementation {
-                override suspend fun evaluate(
-                    searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
-                ): MetricResults = searchPlugin.precisionAtK(
-                    ratedSearches = ratedSearches,
-                    relevantRatingThreshold = metric.getIntParamValue("relevantRatingThreshold", params),
-                    k = metric.getIntParamValue("k", params)
-                )
-            }
+            RecallAtK -> searchPlugin.recallAtK(
+                ratedSearches = ratedSearches,
+                relevantRatingThreshold = getIntParamValue("relevantRatingThreshold", params),
+                k = getIntParamValue("k", params),
+                chunkSize = chunkSize
+            )
 
-            Metric.RecallAtK -> object : MetricImplementation {
-                override suspend fun evaluate(
-                    searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
-                ): MetricResults = searchPlugin.recallAtK(
-                    ratedSearches = ratedSearches,
-                    relevantRatingThreshold = metric.getIntParamValue("relevantRatingThreshold", params),
-                    k = metric.getIntParamValue("k", params)
-                )
-            }
+            MeanReciprocalRank -> searchPlugin.meanReciprocalRank(
+                ratedSearches = ratedSearches,
+                relevantRatingThreshold = getIntParamValue("relevantRatingThreshold", params),
+                k = getIntParamValue("k", params),
+                chunkSize = chunkSize
+            )
 
-            Metric.MeanReciprocalRank -> object : MetricImplementation {
-                override suspend fun evaluate(
-                    searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
-                ): MetricResults = searchPlugin.meanReciprocalRank(
-                    ratedSearches = ratedSearches,
-                    relevantRatingThreshold = metric.getIntParamValue("relevantRatingThreshold", params),
-                    k = metric.getIntParamValue("k", params)
-                )
-            }
+            ExpectedReciprocalRank -> searchPlugin.expectedReciprocalRank(
+                ratedSearches = ratedSearches,
+                maxRelevance = getIntParamValue("maxRelevance", params),
+                k = getIntParamValue("k", params),
+                chunkSize = chunkSize
+            )
 
-            Metric.ExpectedReciprocalRank -> object : MetricImplementation {
-                override suspend fun evaluate(
-                    searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
-                ): MetricResults = searchPlugin.expectedReciprocalRank(
-                    ratedSearches = ratedSearches,
-                    maxRelevance = metric.getIntParamValue("maxRelevance", params),
-                )
-            }
+            DiscountedCumulativeGain -> searchPlugin.discountedCumulativeGain(
+                ratedSearches = ratedSearches,
+                k = getIntParamValue("k", params),
+                useLinearGains = getBoolParamValue("useLinearGains", params),
+                chunkSize = chunkSize
+            )
 
-            Metric.DiscountedCumulativeGain -> object : MetricImplementation {
-                override suspend fun evaluate(
-                    searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
-                ): MetricResults = searchPlugin.discountedCumulativeGain(
-                    ratedSearches = ratedSearches,
-                    k = metric.getIntParamValue("k", params),
-                    useLinearGains = metric.getBoolParamValue("useLinearGains", params)
-                )
-            }
-
-            Metric.NormalizedDiscountedCumulativeGain -> object : MetricImplementation {
-                override suspend fun evaluate(
-                    searchPlugin: SearchPlugin, ratedSearches: List<RatedSearch>, params: List<MetricParam>
-                ): MetricResults = searchPlugin.normalizedDiscountedCumulativeGain(
-                    ratedSearches = ratedSearches,
-                    k = metric.getIntParamValue("k", params),
-                    useLinearGains = metric.getBoolParamValue("useLinearGains", params)
-                )
-            }
+            NormalizedDiscountedCumulativeGain -> searchPlugin.normalizedDiscountedCumulativeGain(
+                ratedSearches = ratedSearches,
+                k = getIntParamValue("k", params),
+                useLinearGains = getBoolParamValue("useLinearGains", params),
+                chunkSize = chunkSize
+            )
         }
-    }
+}
 
 @Serializable
 data class MetricParam(val name: String, val value: JsonPrimitive)
