@@ -1,5 +1,7 @@
 package com.jilesvangurp.rankquest.core
 
+import com.jilesvangurp.rankquest.core.pluginconfiguration.MetricsOutput
+import com.jilesvangurp.rankquest.core.pluginconfiguration.SearchPluginConfiguration
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -40,4 +42,28 @@ suspend fun SearchPlugin.fetchAll(ratedSearches: List<RatedSearch>, k: Int, chun
     }
 }
 
+suspend fun SearchPlugin.runMetrics(
+    config: SearchPluginConfiguration,
+    ratedSearches: List<RatedSearch>,
+    chunkSize: Int = 10
+): List<Result<MetricsOutput>> {
+    val plugin = this
+    return config.metrics.map { metricConfiguration ->
+        try {
+            val results = metricConfiguration.metric.run(
+                searchPlugin = plugin,
+                ratedSearches = ratedSearches,
+                params = metricConfiguration.params,
+                chunkSize = chunkSize
+            )
+            Result.success(
+                MetricsOutput(
+                config.name, metricConfiguration, results
+            )
+            )
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}
 
