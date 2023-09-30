@@ -15,7 +15,8 @@ val String.primitive get() = JsonPrimitive(this)
 
 @Serializable
 enum class Metric(
-    val supportedParams: List<MetricParam>
+    val supportedParams: List<MetricParam>,
+    val defaultExpected: Double = 0.8,
 ) {
     PrecisionAtK(
         supportedParams = listOf(
@@ -113,7 +114,12 @@ enum class Metric(
 data class MetricParam(val name: String, val value: JsonPrimitive)
 
 @Serializable
-data class MetricConfiguration(val name: String, val metric: Metric, val params: List<MetricParam>)
+data class MetricConfiguration(
+    val name: String,
+    val metric: Metric,
+    val params: List<MetricParam>,
+    @EncodeDefault val expected: Double? = null
+)
 
 @Serializable
 sealed interface SearchContextField {
