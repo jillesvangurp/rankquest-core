@@ -16,4 +16,5 @@ data class RatedSearch(
     val searchContext: Map<String, String>,
     val ratings: List<SearchResultRating>,
     val comment: String?=null,
+    val tags: List<String>?=null,
 )
