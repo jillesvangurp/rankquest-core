@@ -7,6 +7,10 @@ Rankquest is a kotlin multiplatform rank evalution library that can be used to b
 Rankquest powers [Rankquest Studio](https://rankquest.jillesvangurp.com). This is a nice web UI for creating and
 evaluating test cases that uses rankquest core. Using it require no installation. Everything happens in the browser and your configuration and test cases are stored locally in the browser. Like rankquest-core, Rankquest Studio is open source and you can find the source code [here](https://github.com/jillesvangurp/rankquest-studio).
 
+## Rankquest Cli
+
+Once you have created test cases with Rankquest Studio, you can run them on the command line with [rankquest-cli](https://github.com/jillesvangurp/rankquest-cli). You can easily integrate that into your builds as well.
+
 ## Features
 
 This library provides portable implementations of common search rank evaluation algorithms. Currently it supports:
