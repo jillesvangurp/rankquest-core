@@ -3,6 +3,7 @@ package com.jilesvangurp.rankquest.core
 import kotlin.math.ln
 import kotlin.math.min
 import kotlin.math.pow
+import kotlin.math.sqrt
 
 suspend fun SearchPlugin.precisionAtK(
     ratedSearches: List<RatedSearch>,
@@ -278,3 +279,4 @@ suspend fun SearchPlugin.normalizedDiscountedCumulativeGain(
     val averageDcg = metricResults.sumOf { it.metric } / metricResults.size
     return MetricResults(averageDcg, metricResults)
 }
+
