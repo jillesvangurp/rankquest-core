@@ -1,3 +1,5 @@
+[![CI Build](https://github.com/jillesvangurp/rankquest-core/actions/workflows/pr_master.yaml/badge.svg)](https://github.com/jillesvangurp/rankquest-core/actions/workflows/pr_master.yaml)
+
 Rankquest is a kotlin multiplatform rank evalution library that can be used to benchmark any API that returns search results.
 
 ## Rankquest Studio
