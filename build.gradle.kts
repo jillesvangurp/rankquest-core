@@ -9,6 +9,7 @@ repositories {
     maven("https://maven.tryformation.com/releases")
 }
 
+
 kotlin {
     jvm {
         val main by compilations.getting {
