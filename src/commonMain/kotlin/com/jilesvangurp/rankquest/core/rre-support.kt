@@ -61,14 +61,17 @@ fun RRE.toRatings(): List<RatedSearch> {
                 RatedSearch(
                     id = (id++).toString(),
                     ratings = ratings,
+                    comment = group.description,
+                    tags = listOfNotNull(
+                        group.name, query.template
+                    ),
                     searchContext = query.placeholders
                         .map { (k, v) ->
-                            k.replace("${'$'}","") to v
+                            k.replace("${'$'}", "") to v
                         }.toMap().let {
                             // add _template variable to context
                             it + ("_template" to query.template)
                         },
-                    comment = group.name + "" + group.description
                 )
             }
         }
