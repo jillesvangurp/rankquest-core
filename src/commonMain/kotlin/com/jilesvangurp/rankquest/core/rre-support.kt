@@ -78,7 +78,7 @@ fun RRE.toRatings(): List<RatedSearch> {
     }
 }
 
-fun List<RatedSearch>.toRRE(index: String = "ranquest", corporaFile: String = "ranquest", idField: String = "id") {
+fun List<RatedSearch>.toRRE(index: String = "ranquest", corporaFile: String = "ranquest", idField: String = "id"): RRE {
 
     val groups = groupBy {
         it.tags
@@ -106,5 +106,5 @@ fun List<RatedSearch>.toRRE(index: String = "ranquest", corporaFile: String = "r
             }
         )
     }
-    RRE(index = index, corporaFile = corporaFile, idField = idField, topics = topics)
+    return RRE(index = index, corporaFile = corporaFile, idField = idField, topics = topics)
 }

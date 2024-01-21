@@ -4,7 +4,6 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.withClue
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotContain
 import kotlinx.serialization.encodeToString
 import kotlin.test.Test
@@ -14,6 +13,7 @@ class RRESupportTest {
     @Test
     fun shouldParseRREFormat() {
         val rre = DEFAULT_JSON.decodeFromString(RRE.serializer(), sampleRre)
+        println(DEFAULT_PRETTY_JSON.encodeToString(rre))
 
         val ratings = rre.toRatings()
         println(DEFAULT_PRETTY_JSON.encodeToString(ratings))
