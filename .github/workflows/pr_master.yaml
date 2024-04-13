@@ -40,13 +40,13 @@ jobs:
       run: 'git log -n 20'
     - id: 'step-2'
       name: 'setup java'
-      uses: 'actions/setup-java@v3'
+      uses: 'actions/setup-java@v4'
       with:
         java-version: '17'
         distribution: 'adopt'
         cache: 'gradle'
     - id: 'step-3'
       name: 'build with gradle'
-      uses: 'gradle/gradle-build-action@v2'
+      uses: 'gradle/gradle-build-action@v3'
       with:
         arguments: 'clean check build -PdoFailFast -PdockerComposeTestsEnabled=true --scan'

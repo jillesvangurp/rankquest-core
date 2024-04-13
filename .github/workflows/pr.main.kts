@@ -1,10 +1,10 @@
 #!/usr/bin/env kotlin
 
-@file:DependsOn("io.github.typesafegithub:github-workflows-kt:1.2.0")
+@file:DependsOn("io.github.typesafegithub:github-workflows-kt:1.14.0")
 
 import io.github.typesafegithub.workflows.actions.actions.CheckoutV4
-import io.github.typesafegithub.workflows.actions.actions.SetupJavaV3
-import io.github.typesafegithub.workflows.actions.gradle.GradleBuildActionV2
+import io.github.typesafegithub.workflows.actions.actions.SetupJavaV4
+import io.github.typesafegithub.workflows.actions.gradle.GradleBuildActionV3
 import io.github.typesafegithub.workflows.domain.RunnerType
 import io.github.typesafegithub.workflows.domain.triggers.PullRequest
 import io.github.typesafegithub.workflows.domain.triggers.Push
@@ -27,7 +27,7 @@ val workflow = workflow(
     sourceFile = __FILE__.toPath(),
     targetFileName = "pr_master.yaml",
 ) {
-    val testJob = job(
+    job(
         id = "build-and-test",
         name = "Build And Test",
         runsOn = RunnerType.UbuntuLatest,
@@ -43,20 +43,18 @@ val workflow = workflow(
         )
         uses(
             name = "setup java",
-            action = SetupJavaV3(
+            action = SetupJavaV4(
                 javaVersion = "17",
-                distribution = SetupJavaV3.Distribution.Adopt,
-                cache = SetupJavaV3.BuildPlatform.Gradle,
+                distribution = SetupJavaV4.Distribution.Adopt,
+                cache = SetupJavaV4.BuildPlatform.Gradle,
             )
         )
-        run {
-            uses(
-                name = "build with gradle",
-                action = GradleBuildActionV2(
-                    arguments = "clean check build -PdoFailFast -PdockerComposeTestsEnabled=true --scan",
-                )
+        uses(
+            name = "build with gradle",
+            action = GradleBuildActionV3(
+                arguments = "clean check build -PdoFailFast -PdockerComposeTestsEnabled=true --scan",
             )
-        }
+        )
 
     }
 }
