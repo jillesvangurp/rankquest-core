@@ -40,6 +40,7 @@ class JsonGetAPIPluginFactory(
         return JsonGetAPIPlugin(
             httpClient = httpClient,
             searchUrl = settings.searchUrl,
+            searchContextParams = settings.searchContextParams,
             requestHeaders = settings.requestHeaders,
             jsonPathToHits = settings.jsonPathToHits,
             jsonPathToId = settings.jsonPathToId,
@@ -60,6 +61,7 @@ class JsonGetAPIPluginFactory(
 class JsonGetAPIPlugin(
     private val httpClient: HttpClient,
     private val searchUrl: String,
+    private val searchContextParams: Map<String, String>,
     private val requestHeaders: Map<String, String>,
     private val jsonPathToHits: List<String>,
     private val jsonPathToId: List<String>,
@@ -73,6 +75,9 @@ class JsonGetAPIPlugin(
                 accept(ContentType.Application.Json)
                 requestHeaders.forEach { (key, value) ->
                     header(key, value)
+                }
+                searchContextParams.forEach { (k,v)->
+                    parameter(k, v)
                 }
                 searchContext.forEach { (k, v) ->
                     parameter(k, v)
