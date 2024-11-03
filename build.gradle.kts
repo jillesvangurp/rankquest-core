@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
@@ -12,17 +15,10 @@ repositories {
 
 kotlin {
     jvm {
-        val main by compilations.getting {
-            kotlinOptions {
-                // Setup the Kotlin compiler options for the 'main' compilation:
-                jvmTarget = "1.8"
-            }
-        }
-        val test by compilations.getting {
-            kotlinOptions {
-                // Setup the Kotlin compiler options for the 'main' compilation:
-                jvmTarget = "1.8"
-            }
+
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_1_8
         }
     }
     js(IR) {
@@ -38,7 +34,7 @@ kotlin {
 
     sourceSets {
 
-        val commonMain by getting {
+        commonMain {
                 dependencies {
                     api(KotlinX.coroutines.core)
                     api(Ktor.client.core)
@@ -50,7 +46,7 @@ kotlin {
                 }
             }
 
-        val commonTest by getting {
+        commonTest {
                 dependencies {
                     implementation(kotlin("test-common", "_"))
                     implementation(kotlin("test-annotations-common", "_"))
@@ -61,11 +57,11 @@ kotlin {
                 }
             }
 
-        val jvmMain by getting {
+        jvmMain {
             dependencies {
             }
         }
-        val jvmTest by getting {
+        jvmTest {
             dependencies {
                 runtimeOnly("org.junit.jupiter:junit-jupiter:_")
                 implementation(kotlin("test-junit"))
@@ -82,12 +78,12 @@ kotlin {
             }
         }
 
-        val jsMain by getting {
+        jsMain {
                 dependencies {
                 }
         }
 
-        val jsTest by getting {
+        jsTest {
             dependencies {
                 implementation(kotlin("test-js"))
             }
