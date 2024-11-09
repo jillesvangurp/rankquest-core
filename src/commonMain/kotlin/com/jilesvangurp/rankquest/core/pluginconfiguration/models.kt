@@ -1,7 +1,10 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package com.jilesvangurp.rankquest.core.pluginconfiguration
 
 import com.jilesvangurp.rankquest.core.*
 import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
@@ -124,12 +127,14 @@ data class MetricConfiguration(
 @Serializable
 sealed interface SearchContextField {
     val name: String
+    val help: String
 
     @Serializable
     @SerialName("str")
     data class StringField(
         override val name: String,
-        @EncodeDefault val defaultValue: String = "",
+        override val help: String = "",
+        @EncodeDefault val defaultValue: String? = null,
         @EncodeDefault val placeHolder: String = "",
     ) : SearchContextField
 
@@ -137,14 +142,17 @@ sealed interface SearchContextField {
     @SerialName("int")
     data class IntField(
         override val name: String,
-        @EncodeDefault val defaultValue: Int = 0,
-        @EncodeDefault val placeHolder: String = "",
+        override val help: String = "",
+        @EncodeDefault val defaultValue: Int?=null,
+        @EncodeDefault val placeHolder: String = "0",
     ) : SearchContextField
 
     @Serializable
     @SerialName("bool")
     data class BoolField(
-        override val name: String, @EncodeDefault val defaultValue: Boolean = false
+        override val name: String,
+        override val help: String = "",
+        @EncodeDefault val defaultValue: Boolean? = null
     ) : SearchContextField
 }
 
