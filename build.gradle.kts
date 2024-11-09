@@ -22,16 +22,60 @@ kotlin {
         }
     }
     js(IR) {
-        nodejs {
-            testTask( Action {
+        browser {
+            testTask {
                 useMocha {
                     // javascript is a lot slower than Java, we hit the default timeout of 2000
-                    timeout = "20000"
+                    timeout = "30s"
                 }
-            })
+            }
+        }
+        nodejs {
+            testTask {
+                useMocha {
+                    // javascript is a lot slower than Java, we hit the default timeout of 2000
+                    timeout = "30s"
+                }
+            }
         }
     }
-    // TODO add more build targets
+    // needs kt-search to add the target
+//    linuxX64()
+    mingwX64()
+    macosX64()
+    macosArm64()
+    // iOS targets
+    iosArm64()
+    iosX64()
+    iosSimulatorArm64()
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        browser {
+            testTask {
+                useMocha {
+                    // javascript is a lot slower than Java, we hit the default timeout of 2000
+                    timeout = "30s"
+                }
+            }
+        }
+        nodejs {
+            testTask {
+                useMocha {
+                    // javascript is a lot slower than Java, we hit the default timeout of 2000
+                    timeout = "30s"
+                }
+            }
+        }
+        // errors
+//        d8 {
+//            testTask {
+//                useMocha {
+//                    // javascript is a lot slower than Java, we hit the default timeout of 2000
+//                    timeout = "30s"
+//                }
+//            }
+//        }
+    }
 
     sourceSets {
 
@@ -89,14 +133,57 @@ kotlin {
                 implementation(kotlin("test-js"))
             }
         }
+        wasmJsMain {
+            dependencies {
+                implementation("io.ktor:ktor-client-js-wasm-js:_")
+            }
+        }
+
+        wasmJsTest {
+            dependencies {
+                implementation(kotlin("test-wasm-js"))
+            }
+        }
+
+        iosMain {
+            dependencies {
+                implementation(Ktor.client.darwin)
+            }
+        }
+
+        macosMain {
+            dependencies {
+                implementation(Ktor.client.darwin)
+            }
+        }
+
+        mingwMain {
+            dependencies {
+                implementation(Ktor.client.curl)
+            }
+        }
+//        linuxMain {
+//            dependencies {
+//                implementation(Ktor.client.curl)
+//            }
+//        }
 
         all {
-            languageSettings.optIn("kotlin.RequiresOptIn")
-            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
+            languageSettings {
+                optIn("kotlin.RequiresOptIn")
+                optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
+                languageVersion = "1.9"
+                apiVersion = "1.9"
+            }
         }
     }
 }
 
+tasks.named("iosSimulatorArm64Test") {
+    // requires IOS simulator and tens of GB of other stuff to be installed
+    // so keep it disabled
+    enabled = false
+}
 
 publishing {
     repositories {
