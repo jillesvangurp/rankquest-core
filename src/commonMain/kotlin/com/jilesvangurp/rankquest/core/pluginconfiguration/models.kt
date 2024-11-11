@@ -157,7 +157,7 @@ sealed interface SearchContextField {
         override val name: String,
         override val help: String = "",
         override val required: Boolean = false,
-        @EncodeDefault val defaultValue: Int?=null,
+        @EncodeDefault val defaultValue: Double?=null,
         @EncodeDefault val placeHolder: String = "0.0",
     ) : SearchContextField
 
