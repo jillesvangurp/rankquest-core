@@ -13,6 +13,7 @@ import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.int
 
 val Int.primitive get() = JsonPrimitive(this)
+val Double.primitive get() = JsonPrimitive(this)
 val Boolean.primitive get() = JsonPrimitive(this)
 val String.primitive get() = JsonPrimitive(this)
 
@@ -128,12 +129,14 @@ data class MetricConfiguration(
 sealed interface SearchContextField {
     val name: String
     val help: String
+    val required: Boolean
 
     @Serializable
     @SerialName("str")
     data class StringField(
         override val name: String,
         override val help: String = "",
+        override val required: Boolean = false,
         @EncodeDefault val defaultValue: String? = null,
         @EncodeDefault val placeHolder: String = "",
     ) : SearchContextField
@@ -143,8 +146,19 @@ sealed interface SearchContextField {
     data class IntField(
         override val name: String,
         override val help: String = "",
+        override val required: Boolean = false,
         @EncodeDefault val defaultValue: Int?=null,
         @EncodeDefault val placeHolder: String = "0",
+    ) : SearchContextField
+
+    @Serializable
+    @SerialName("double")
+    data class DoubleField(
+        override val name: String,
+        override val help: String = "",
+        override val required: Boolean = false,
+        @EncodeDefault val defaultValue: Int?=null,
+        @EncodeDefault val placeHolder: String = "0.0",
     ) : SearchContextField
 
     @Serializable
@@ -152,6 +166,7 @@ sealed interface SearchContextField {
     data class BoolField(
         override val name: String,
         override val help: String = "",
+        override val required: Boolean = false,
         @EncodeDefault val defaultValue: Boolean? = null
     ) : SearchContextField
 }
